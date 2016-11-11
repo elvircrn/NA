@@ -1,16 +1,20 @@
 #include "Vector.h"
 
-
-
 void Vector::PushBack(const double & elem)
 {
 	elements.push_back(elem);
 }
 
-void Vector::DimChech(const Vector & v1, const Vector & v2) const
+void Vector::DimCheck(const Vector & v1, const Vector & v2) const
 {
 	if (v1.NElems() != v2.NElems())
 		throw std::domain_error("Incompatible formats");
+}
+
+void Vector::DimCheck(const Vector &v) const
+{
+    if (NElems() != v.NElems())
+        throw std::domain_error("Incompatible formats");
 }
 
 void Vector::RangeCheck(int index) const
@@ -84,6 +88,7 @@ void Vector::Print(char separator) const
 
 Vector & Vector::operator+=(const Vector & v)
 {
+    DimCheck(v);
 	for (int i = 0; i < v.NElems(); i++)
 		elements[i] += v[i];
 	return (*this);
@@ -91,6 +96,7 @@ Vector & Vector::operator+=(const Vector & v)
 
 Vector & Vector::operator-=(const Vector & v)
 {
+    DimCheck(v);
 	for (int i = 0; i < v.NElems(); i++)
 		elements[i] -= v[i];
 
@@ -102,6 +108,11 @@ Vector & Vector::operator*=(double s)
 	return ForEach([&s](double x) { return x * s; });
 }
 
+Vector & Vector::operator/=(double s)
+{
+	ForEach([&s](double x) -> double { return x / s; });
+	return (*this);
+}
 
 Vector::~Vector()
 {
@@ -109,6 +120,7 @@ Vector::~Vector()
 
 Vector operator+(const Vector & v1, const Vector & v2)
 {
+    v1.DimCheck(v2);
 	Vector ret;
 	for (int i = 0; i < v1.NElems(); i++)
 		ret.PushBack(v1[i] + v2[i]);
@@ -137,9 +149,17 @@ Vector operator*(const Vector & v, double s)
 
 double operator*(const Vector & v1, const Vector & v2)
 {
-	v1.DimChech(v1, v2);
+	v1.DimCheck(v2);
 	double ret = 0.0;
 	for (int i = 0; i < v1.NElems(); i++)
 		ret += v1[i] * v2[i];
 	return ret;
 }
+
+Vector operator/(const Vector & v, double s)
+{
+	Vector ret = v;
+	ret.ForEach([&s](double x) -> double { return x / s; });
+	return ret;
+}
+

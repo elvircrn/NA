@@ -13,9 +13,11 @@ class Vector
 	std::vector<double> elements;
 
 	void PushBack(const double &elem);
-	void DimChech(const Vector &v1, const Vector &v2) const;
+	void DimCheck(const Vector &v1, const Vector &v2) const;
+	void DimCheck(const Vector &v) const;
 	void RangeCheck(int index) const;
 	Vector& ForEach(const std::function<double(double)> &f);
+
 public:
 	Vector();
 	
@@ -37,7 +39,6 @@ public:
 	friend double operator *(const Vector &v1, const Vector &v2);
 	friend Vector operator /(const Vector &v, double s);
 	Vector &operator /=(double s);
-	
 	~Vector();
 };
 
