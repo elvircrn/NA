@@ -4,14 +4,16 @@
 #include "Matrix.h"
 #include "Vector.h"
 
+// TODO: Throw exceptions
 class LUDecomposer
 {
 	Matrix lu;
+	std::vector<int> w;
 public:
 	LUDecomposer(Matrix m);
-	Matrix Solve(const Vector &b, Vector &x) const; // belaj
+	void Solve(const Vector &b, Vector &x) const; // belaj
 	Vector Solve(Vector b) const;
-	Matrix Solve(Matrix &b, Matrix &x) const; // belaj
+	void Solve(Matrix &b, Matrix &x) const; // belaj
 	Matrix Solve(Matrix b) const;
 	Matrix GetCompactLU() const;
 	Matrix GetL() const;

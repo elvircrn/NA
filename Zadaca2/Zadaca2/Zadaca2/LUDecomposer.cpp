@@ -10,7 +10,7 @@ LUDecomposer::~LUDecomposer()
 
 }
 
-LUDecomposer::LUDecomposer(Matrix a) : lu(a)
+LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 {
 	lu.SquareCheck();
 
@@ -18,7 +18,6 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a)
 	int m = lu.NRows();
 	int p = 0;
 	double s;
-	std::vector<int>w(n);
 	for (int j = 0; j < n; j++)
 	{
 		for (int i = 0; i <= j; i++)
@@ -54,7 +53,108 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a)
 	}
 }
 
+void LUDecomposer::Solve(const Vector & b, Vector & x) const
+{
+	int n = b.NElems();
+	Vector y(n);
+	Matrix l = GetL();
+	Matrix u = GetU();
+	double s;
+	for (int i = 0; i < n; i++)
+	{
+		s = b[i];
+		for (int j = 0; j < i; j++)
+			s -= l[i][j] * y[j];
+		y[i] = s;
+	}
+	for (int i = n - 1; i > -1; i--)
+	{
+		s = y[i];
+		for (int j = i + 1; j < n; j++)
+			s -= u[i][j] * y[j];
+		x[i] = s / u[i][i];
+	}
+}
+
+Vector LUDecomposer::Solve(Vector b) const
+{
+	int n = b.NElems();
+	Vector y(n);
+	Matrix l = GetL();
+	Matrix u = GetU();
+	Vector x(n);
+	double s;
+	for (int i = 0; i < n; i++)
+	{
+		s = b[i];
+		for (int j = 0; j < i; j++)
+			s -= l[i][j] * y[j];
+		y[i] = s;
+	}
+	for (int i = n - 1; i > -1; i--)
+	{
+		s = y[i];
+		for (int j = i + 1; j < n; j++)
+			s -= u[i][j] * y[j];
+		x[i] = s / u[i][i];
+	}
+	return x;
+}
+
+void LUDecomposer::Solve(Matrix & b, Matrix & x) const
+{
+	int n = b.NRows();
+	int m = b.NCols();
+
+	Vector xx(n);
+	for (int j = 0; j < m; j++)
+	{
+		for (int i = 0; i < n; i++)
+			xx[i] = b[i][j];
+		Solve(xx, xx);
+		for (int i = 0; i < n; i++)
+			x[i][j] = xx[i];
+	}
+}
+
+Matrix LUDecomposer::Solve(Matrix b) const
+{
+	Matrix ret(b.NRows(), b.NCols());
+	Solve(b, ret);
+	return ret;
+}
+
 Matrix LUDecomposer::GetCompactLU() const
 {
 	return lu;
+}
+
+Matrix LUDecomposer::GetL() const
+{
+	Matrix l(lu);
+	for (int i = 0; i < lu.NRows() - 1; i++)
+	{
+		l[i][i] = 1.0;
+		for (int j = i + 1; j < lu.NCols(); j++)
+			l[i][j] = 0.0;
+	}
+	l[lu.NRows() - 1][lu.NRows() - 1] = 1.0;
+	return l;
+}
+
+Matrix LUDecomposer::GetU() const
+{
+	Matrix u(lu);
+	for (int i = 0; i < lu.NRows() - 1; i++)
+		for (int j = i + 1; j < lu.NCols(); j++)
+			u[j][i] = 0.0;
+	return u;
+}
+
+Vector LUDecomposer::GetPermuation() const
+{
+	Vector a(w.size());
+	for (int i = 0; i < w.size(); i++)
+		a[i] = (double)w[i];
+	return a;
 }

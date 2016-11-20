@@ -82,5 +82,6 @@ public:
 	friend int Rank(Matrix a); //double -> int
 
 	friend class LUDecomposer;
+	friend class QRDecomposer;
 };
 #endif // !_MATRIX_H_

@@ -6,10 +6,9 @@
 
 class QRDecomposer
 {
+	Matrix v;
+	Vector d;
 public:
-	QRDecomposer();
-	~QRDecomposer();
-
 	QRDecomposer(Matrix m);
 	void Solve(const Vector &b, Vector &x) const; // belaj
 	Vector Solve(Vector b) const;
@@ -21,6 +20,8 @@ public:
 	Matrix MulQTWith(Matrix m) const;
 	Matrix GetQ() const;
 	Matrix GetR() const;
+
+	~QRDecomposer();
 };
 
 #endif // !_QRDECOMPOSE_H_

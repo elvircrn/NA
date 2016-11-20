@@ -6,6 +6,7 @@
 #include <functional>
 #include <vector>
 
+#include "QRDecomposer.h"
 #include "LUDecomposer.h"
 #include "Matrix.h"
 #include "Vector.h"
@@ -126,12 +127,16 @@ bool test_12()
 bool test_13()
 {
 	Matrix A = { {1, -2, -2, -3}, {3, -9, 0, -9}, {-1, 2, 4, 7}, {-3, -6, 26, 2} };
-	Matrix B = { {6, 8, 2}, {3, 7, 4}, {0, -1, 2} };
+	Matrix B = { {6, 8, 2}, {3, 7, 4}, {3, 1, 9} };
 
 	LUDecomposer lu = LUDecomposer(A);
 
 
-	lu.GetCompactLU().Print();
+	putchar('\n');
+	lu.GetCompactLU().Print(); putchar('\n'); putchar('\n');
+	lu.GetL().Print(); putchar('\n'); putchar('\n');
+	lu.GetU().Print(); putchar('\n'); putchar('\n');
+	
 
 	return true;
 	
@@ -142,11 +147,38 @@ bool test_13()
 	*/
 }
 
+bool test_16()
+{
+	Matrix A = Matrix(
+	{ {6, 8, 2},
+	{5, 7, 4},
+	{3, 1,9} }
+	);
+
+	putchar('\n');
+	putchar('\n');
+	QRDecomposer qr = QRDecomposer(A);
+	qr.GetQ().Print();
+	putchar('\n');
+	putchar('\n');
+	qr.GetR().Print();
+	putchar('\n');
+	putchar('\n');
+
+	((qr.GetQ()) * (qr.GetR())).Print();
+
+	putchar('\n');
+	putchar('\n');
+	
+	return true;
+}
+
 
 std::vector<std::function<bool()>> tests;
 
 int main()
 {
+	/*
 	tests.push_back(test_1);
 	tests.push_back(test_2);
 	tests.push_back(test_3);
@@ -160,6 +192,9 @@ int main()
 	tests.push_back(test_11);
 	tests.push_back(test_12);
 	tests.push_back(test_13);
+	*/
+	tests.push_back(test_16);
+
 
 	for (int i = 0; i < tests.size(); i++)
 		std::cout << "Test number " << i + 1 << ": " << ((tests[i]()) ? "OK\n" : "BAD\n");
