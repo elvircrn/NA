@@ -1,0 +1,662 @@
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <string>
+#include <cstring>
+#include <iomanip>
+#include <stdexcept>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+
+class Vector
+{
+	std::vector<double> elements;
+
+	void DimCheck(int n) const;
+	void PushBack(const double &elem);
+	void DimCheck(const Vector &v1, const Vector &v2) const;
+	void DimCheck(const Vector &v) const;
+	void RangeCheck(int index) const;
+	Vector& ForEach(const std::function<double(double)> &f);
+	void CheckZero(double x) const;
+
+public:
+
+	explicit Vector(int n);
+	Vector(std::initializer_list<double> l);
+	int NElems() const;
+	double &operator[](int i);
+	double operator[](int i) const;
+	double &operator()(int i);
+	double operator()(int i) const;
+	void Print(char separator = '\n') const;
+	friend Vector operator +(const Vector &v1, const Vector &v2);
+	Vector &operator +=(const Vector &v);
+	friend Vector operator -(const Vector &v1, const Vector &v2);
+	Vector &operator -=(const Vector &v);
+	friend Vector operator *(double s, const Vector &v);
+	friend Vector operator *(const Vector &v, double s);
+	Vector &operator *=(double s);
+	friend double operator *(const Vector &v1, const Vector &v2);
+	friend Vector operator /(const Vector &v, double s);
+	Vector &operator /=(double s);
+
+	~Vector();
+
+	bool JesuLiJednaki(double x, double y, double Eps = 1e-10) const
+	{
+        return std::fabs(x - y) <= Eps * (std::fabs(x) + std::fabs(y));
+    }
+};
+
+class Matrix
+{
+protected:
+	std::vector<std::vector<double>> mat;
+	void ListCheck(const std::initializer_list<std::vector<double>>&) const;
+	void RangeCheck(int x) const;
+	void RangeCheck(int x, int y) const;
+	void DimCheck(int, int) const;
+	void DimCheck(int) const;
+	void DimCheck(const Matrix &m) const;
+	void DimCheck(const Matrix &m1, const Matrix &m2) const;
+	void DimSameCheck(const Matrix &m1, const Matrix &m2) const;
+	void DimSameCheck(const Matrix &m1) const;
+	void CheckZero(double x) const;
+
+public:
+	Matrix();
+
+	Matrix(int m, int n);
+	Matrix(const Vector &v);
+	Matrix(std::initializer_list<std::vector<double>> l);
+	int NRows() const;
+	int NCols() const;
+	double *operator[](int i);
+	const double *operator[](int i) const;
+	double &operator()(int i, int j);
+	double operator()(int i, int j) const;
+	void Print(int width = 10) const;
+	friend Matrix operator +(const Matrix &m1, const Matrix &m2);
+	Matrix &operator +=(const Matrix &m);
+	friend Matrix operator -(const Matrix &m1, const Matrix &m2);
+	Matrix &operator -=(const Matrix &m);
+	friend Matrix operator *(double s, const Matrix &m);
+	friend Matrix operator *(const Matrix &m, double s);
+	Matrix &operator *=(double s);
+	friend Matrix operator *(const Matrix &m1, const Matrix &m2);
+	Matrix &operator *=(const Matrix &m);
+	friend Vector operator *(const Matrix &m, const Vector &v);
+	friend Matrix Transpose(const Matrix &m);
+	void Transpose();
+
+    bool JesuLiJednaki(double x, double y, double Eps = 1e-10) const
+	{
+        return std::fabs(x - y) <= Eps * (std::fabs(x) + std::fabs(y));
+    }
+
+	~Matrix();
+};
+
+void Vector::DimCheck(int n) const
+{
+    if (n <= 0)
+        throw std::range_error("Bad dimension");
+}
+
+void Vector::CheckZero(double x) const
+{
+    if (JesuLiJednaki(x, 0))
+        throw std::domain_error("Division by zero");
+}
+
+void Vector::PushBack(const double & elem)
+{
+	elements.push_back(elem);
+}
+
+void Vector::DimCheck(const Vector & v1, const Vector & v2) const
+{
+	if (v1.NElems() != v2.NElems())
+		throw std::domain_error("Incompatible formats");
+}
+
+void Vector::DimCheck(const Vector &v) const
+{
+    if (NElems() != v.NElems())
+        throw std::domain_error("Incompatible formats");
+}
+
+void Vector::RangeCheck(int index) const
+{
+	if (index < 0 || NElems() <= index)
+		throw std::range_error("Invalid index");
+}
+
+Vector& Vector::ForEach(const std::function<double(double)>& f)
+{
+	for (auto &x : elements)
+		x = f(x);
+	return (*this);
+}
+
+Vector::Vector(int n)
+{
+    DimCheck(n);
+	elements.resize(n, 0);
+}
+
+Vector::Vector(std::initializer_list<double> l)
+{
+    DimCheck(l.size());
+	elements = l;
+}
+
+int Vector::NElems() const
+{
+	return elements.size();
+}
+
+double & Vector::operator[](int i)
+{
+	RangeCheck(i);
+	return elements[i];
+}
+
+double Vector::operator[](int i) const
+{
+	RangeCheck(i);
+	return elements[i];
+}
+
+double & Vector::operator()(int i)
+{
+    i--;
+	RangeCheck(i);
+	return elements[i];
+}
+
+double Vector::operator()(int i) const
+{
+    i--;
+	RangeCheck(i);
+	return elements[i];
+}
+
+void Vector::Print(char separator) const
+{
+	bool first(true);
+	for (auto x : elements)
+	{
+		if (!first)
+			printf("%c", separator);
+		std::cout << x;
+		if (first)
+			first = false;
+	}
+}
+
+Vector & Vector::operator+=(const Vector & v)
+{
+    DimCheck(v);
+	for (int i = 0; i < v.NElems(); i++)
+		elements[i] += v[i];
+	return (*this);
+}
+
+Vector & Vector::operator-=(const Vector & v)
+{
+    DimCheck(v);
+	for (int i = 0; i < v.NElems(); i++)
+		elements[i] -= v[i];
+
+	return (*this);
+}
+
+Vector & Vector::operator*=(double s)
+{
+	return ForEach([&s](double x) { return x * s; });
+}
+
+Vector & Vector::operator/=(double s)
+{
+    CheckZero(s);
+	ForEach([&s](double x) -> double { return x / s; });
+	return (*this);
+}
+
+Vector::~Vector()
+{
+}
+
+Vector operator+(const Vector & v1, const Vector & v2)
+{
+    v1.DimCheck(v2);
+	Vector ret(v1.NElems());
+	for (int i = 0; i < v1.NElems(); i++)
+		ret [i] = (v1[i] + v2[i]);
+	return ret;
+}
+
+Vector operator-(const Vector & v1, const Vector & v2)
+{
+    v1.DimCheck(v2);
+	Vector ret(v1.NElems());
+	for (int i = 0; i < v1.NElems(); i++)
+		ret [i] = (v1[i] - v2[i]);
+	return ret;
+}
+
+Vector operator*(double s, const Vector &v)
+{
+	Vector ret = v;
+	return ret.ForEach([&s](double x) { return x * s; });
+}
+
+Vector operator*(const Vector & v, double s)
+{
+	Vector ret = v;
+	return ret.ForEach([&s](double x) { return x * s; });
+}
+
+double operator*(const Vector & v1, const Vector & v2)
+{
+	v1.DimCheck(v2);
+	double ret = 0.0;
+	for (int i = 0; i < v1.NElems(); i++)
+		ret += v1[i] * v2[i];
+	return ret;
+}
+
+Vector operator/(const Vector & v, double s)
+{
+    v.CheckZero(s);
+	Vector ret = v;
+	ret.ForEach([&s](double x) -> double { return x / s; });
+	return ret;
+}
+
+void Matrix::ListCheck(const std::initializer_list<std::vector<double>> &l) const
+{
+	if (l.size())
+		throw std::range_error("Bad dimension");
+	int first = l.begin()->size();
+	for (auto item : l)
+        if (item.size() == 0)
+            throw std::range_error("Bad dimension");
+		else if (item.size() != first)
+			throw std::logic_error("Bad matrix");
+}
+
+void Matrix::RangeCheck(int x) const
+{
+    if (mat.empty() || x < 0 || mat.size() <= x)
+        throw std::range_error("Invalid index");
+}
+
+void Matrix::RangeCheck(int x, int y) const
+{
+	if (mat.empty() || mat.size() < x || mat[0].size() < y)
+		throw std::range_error("Invalid index");
+}
+
+void Matrix::DimCheck(int n, int m) const
+{
+	if (n <= 0 || m <= 0)
+		throw std::range_error("Bad dimension");
+}
+
+void Matrix::DimCheck(int n) const
+{
+	if (n < 0 || n >= NRows())
+		throw std::range_error("Bad dimensions");
+}
+
+void Matrix::DimCheck(const Matrix & m) const
+{
+	if (NCols() != m.NRows())
+		throw std::domain_error("Incompatible formats");
+}
+
+void Matrix::CheckZero(double x) const
+{
+    if (JesuLiJednaki(x, 0))
+        throw std::domain_error("Division by zero");
+}
+
+void Matrix::DimCheck(const Matrix & m1, const Matrix & m2) const
+{
+	m1.DimCheck(m2);
+}
+
+void Matrix::DimSameCheck(const Matrix & m1, const Matrix & m2) const
+{
+	if (m1.NRows() != m2.NRows() || m2.NCols() != m2.NCols())
+		throw std::domain_error("Incompatible formats");
+}
+
+void Matrix::DimSameCheck(const Matrix & m1) const
+{
+	if (NRows() != m1.NRows() || NCols() != m1.NCols())
+		throw std::domain_error("Incompatible formats");
+}
+
+Matrix::Matrix()
+{
+}
+
+Matrix::Matrix(int n, int m)
+{
+	DimCheck(n, m);
+	mat.resize(n, std::vector<double>(m, 0));
+}
+
+Matrix::Matrix(const Vector & v)
+{
+	mat.resize(v.NElems(), std::vector<double>(1, 0));
+	for (int i = 0; i < v.NElems(); i++)
+		mat[i][0] = v[i];
+}
+
+Matrix::Matrix(std::initializer_list<std::vector<double>> l)
+{
+	ListCheck(l);
+	mat = l;
+}
+
+int Matrix::NRows() const
+{
+	return mat.size();
+}
+
+int Matrix::NCols() const
+{
+	return mat[0].size();
+}
+
+double * Matrix::operator[](int i)
+{
+	RangeCheck(i);
+	return mat[i].data();
+}
+
+const double * Matrix::operator[](int i) const
+{
+	RangeCheck(i);
+	return mat[i].data();
+}
+
+double & Matrix::operator()(int i, int j)
+{
+    i--;
+    j--;
+	RangeCheck(i, j);
+	return mat[i][j];
+}
+
+double Matrix::operator()(int i, int j) const
+{
+    i--;
+    j--;
+	RangeCheck(i, j);
+	return mat[i][j];
+}
+
+void Matrix::Print(int width) const
+{
+	for (int i = 0; i < mat.size(); i++)
+    {
+		for (int j = 0; j < mat[i].size(); j++)
+			std::cout << std::setw(width) << mat[i][j];
+        if (i < mat.size() - 1)
+            std::putchar('\n');
+    }
+}
+
+Matrix & Matrix::operator+=(const Matrix & m)
+{
+	DimSameCheck(m);
+	for (int i = 0; i < m.NRows(); i++)
+		for (int j = 0; j < m.NCols(); j++)
+			mat [i] [j] += m[i][j];
+	return (*this);
+}
+
+Matrix & Matrix::operator-=(const Matrix & m)
+{
+	DimSameCheck(m);
+	for (int i = 0; i < m.NRows(); i++)
+		for (int j = 0; j < m.NCols(); j++)
+			mat [i] [j] -= m[i][j];
+	return (*this);
+}
+
+Matrix & Matrix::operator*=(double s)
+{
+	for (int i = 0; i < NRows(); i++)
+		for (int j = 0; j < NCols(); j++)
+			mat [i] [j] *= s;
+	return (*this);
+}
+
+
+void Matrix::Transpose()
+{
+	Matrix help = Matrix(NCols(), NRows());
+	for (int i = 0; i < help.NRows(); i++)
+		for (int j = 0; j < help.NCols(); j++)
+			help [i] [j] = mat [j] [i];
+	(*this) = help;
+}
+
+Matrix::~Matrix()
+{
+}
+
+Matrix operator+(const Matrix & m1, const Matrix & m2)
+{
+	m1.DimSameCheck(m2);
+	Matrix m = m1;
+	for (int i = 0; i < m1.NRows(); i++)
+		for (int j = 0; j < m2.NCols(); j++)
+			m[i][j] += m2[i][j];
+	return m;
+}
+
+Matrix operator-(const Matrix & m1, const Matrix & m2)
+{
+	m1.DimSameCheck(m2);
+	Matrix m = m1;
+	for (int i = 0; i < m1.NRows(); i++)
+		for (int j = 0; j < m2.NCols(); j++)
+			m[i][j] -= m2[i][j];
+	return m;
+}
+
+Matrix operator*(double s, const Matrix & m)
+{
+	Matrix ret = m;
+	for (int i = 0; i < m.NRows(); i++)
+		for (int j = 0; j < m.NCols(); j++)
+			ret[i][j] *= s;
+	return ret;
+}
+
+Matrix operator*(const Matrix & m, double s)
+{
+	Matrix ret = m;
+	for (int i = 0; i < m.NRows(); i++)
+		for (int j = 0; j < m.NCols(); j++)
+			ret[i][j] *= s;
+	return ret;
+}
+
+Matrix operator*(const Matrix & m1, const Matrix & m2)
+{
+	m1.DimCheck(m2);
+	Matrix ret(m1.NRows(), m2.NCols());
+	for (int i = 0; i < m1.NRows(); i++)
+		for (int j = 0; j < m2.NCols(); j++)
+			for (int k = 0; k < m1.NCols(); k++)
+				ret.mat[i][j] += (m1 [i] [k] * m2[k] [j]);
+	return ret;
+}
+
+Vector operator*(const Matrix & m, const Vector & v)
+{
+	m.DimCheck(v);
+	Vector ret = Vector(m.NRows());
+	for (int i = 0; i < m.NRows(); i++)
+        for (int j = 0; j < m.NCols(); j++)
+            ret [i] += m [i] [j] * v [j];
+	return ret;
+}
+
+Matrix Transpose(const Matrix & m)
+{
+	Matrix ret = Matrix(m.NCols(), m.NRows());
+	for (int i = 0; i < ret.NRows(); i++)
+		for (int j = 0; j < ret.NCols(); j++)
+			ret [i] [j] = m[j][i];
+	return ret;
+}
+
+Matrix & Matrix::operator*=(const Matrix & m)
+{
+	DimCheck(m);
+	Matrix ret(NRows(), m.NCols());
+	for (int i = 0; i < NRows(); i++)
+		for (int j = 0; j < m.NCols(); j++)
+			for (int k = 0; k < NCols(); k++)
+				ret.mat[i][j] += (mat [i] [k] * m [k] [j]);
+	(*this) = ret;
+	return (*this);
+}
+
+template<class T>
+T fast_pow(const T &base, const T &e, int power)
+{
+    if (power == 0)
+        return e;
+    else if (power == 1)
+        return base;
+    else if (power % 2 == 0)
+    {
+        T t = fast_pow(base, e, power / 2);
+        return t * t;
+    }
+    else
+    {
+        return fast_pow(base, e, power - 1) * base;
+    }
+}
+
+
+int main()
+{
+
+//AT22: Testiranje prazne inicijalizacijske liste
+try {Matrix mat3 {{}};}
+catch (std::range_error e) {std::cout << "'" << e.what() << "'";}
+catch (...) {std::cout << "Pogresan tip izuzetka";}
+
+    /*
+    Matrix mat({{ 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 }});
+
+    mat *= 2;
+
+    mat.Print();
+    putchar('\n');
+
+    (mat * mat).Print();
+    putchar('\n');
+
+
+    mat.Transpose();
+
+    mat.Print();
+
+
+    mat *= 123;
+
+
+    Vector vec({1, 2, 3, 4, 5, 6, 7, 8, 9 });
+
+    putchar('\n');
+    vec *= 123;
+    vec.Print(' ');
+
+    vec -= vec;
+
+    putchar('\n');
+    vec.Print(' ');
+
+    vec = Vector({1, 1, 1});
+    vec [0] = 79;
+    putchar('\n');
+    vec.Print(' ');
+    vec(1) = 123;
+    putchar('\n');
+    vec.Print(' ');
+
+
+    putchar('\n');
+    Matrix eigen = Matrix(5, 5);
+    for (int i = 0; i < 5; i++)
+        eigen [i] [i] = 1;
+
+    mat = Matrix ({{1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9}});
+
+    fast_pow(mat, eigen, 2000000).Print();
+
+    std::cout << '\n';
+    fast_pow(mat, eigen, 200).Print();
+
+    std::cout << '\n';
+    fast_pow(mat, eigen, 2).Print();*/
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

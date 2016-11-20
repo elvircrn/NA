@@ -6,17 +6,11 @@ function [X] = lijevo(A, B)
     for k = 1:n
         for i = (k + 1):n
             mi = A(i, k) / A(k, k);
-            for j = (k + 1):n
-                A(i, j) = A(i, j) - mi * A(k, j);
-            end
-            //for j = 1:m
-            //    B(i, j) = B(i, j) - mi * B(k, j);
-            //end
-            
-            B(i, :) = B(i, :) - mi * B(k, :);
+            A(i,k+1:n) = A(i,k+1:n) - mi * A(k, k+1:n);
+            B(i,1:m) = B(i, 1:m) - mi * B(k, 1:m);
         end
     end
-    
+    X = zeros(n, m);
     for k = 1:m
         for i = n:-1:1
             s = B(i, k)
@@ -28,12 +22,18 @@ function [X] = lijevo(A, B)
     end
 endfunction
 
-AA = [2, 1, 3; 2, 6, 8; 6, 8, 18];
-BB = [1; 3; 5];
+AA = [-2, -1, 3; 2, 6, 8; 6, 8, 18];
+BB = [10, 3, 5];
 
-AA = [2, 1, 3; 2, 6, 8; 6, 8, 18];
-BB = [1; 3; 5];
+//[res] = lijevo(AA, BB);
+//disp(res);
 
-[res] = lijevo(AA, BB);
-disp(res);
-disp(AA \ BB);
+
+//Mat = [9, 2, 3; 4, 5, 6; 7, 8, 9];
+//disp(det(Mat));
+
+//AA = [-2, -1, 3; 2, 6, 8; 6, 8, 18];
+
+disp (inv(AA));
+
+
