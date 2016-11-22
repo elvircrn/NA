@@ -442,7 +442,6 @@ int Matrix::Rank() const
 
 	Matrix a = (*this);
 
-
 	while (k <= m && l <= n)
 	{
 		l++;

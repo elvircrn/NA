@@ -18,6 +18,7 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 	int m = lu.NRows();
 	int p = 0;
 	double s;
+
 	for (int j = 0; j < n; j++)
 	{
 		for (int i = 0; i <= j; i++)
@@ -43,35 +44,44 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 
 		if (std::abs(lu[p][j]) < EPS)
 			throw std::domain_error("Matrix is singular");
+
 		if (p != j)
 			std::swap(lu(j + 1), lu(p + 1));
 
 		w[j] = p;
+
 		double mi = 1 / lu[j][j];
 		for (int i = j + 1; i < n; i++)
 			lu[i][j] *= mi;
 	}
 }
 
+/*
+Jos ovu noc za njene oci
+jos ovu noc za njeno lice
+hej sviracu stimaj zice
+*/
 void LUDecomposer::Solve(const Vector & b, Vector & x) const
 {
+	x = b;
 	int n = b.NElems();
-	Vector y(n);
 	Matrix l = GetL();
 	Matrix u = GetU();
-	double s;
+
 	for (int i = 0; i < n; i++)
 	{
-		s = b[i];
+		double s = x[w[i]];
+		x[w[i]] = x[i];
 		for (int j = 0; j < i; j++)
-			s -= l[i][j] * y[j];
-		y[i] = s;
+			s -= l[i][j] * x[j];
+		x[i] = s;	
 	}
+
 	for (int i = n - 1; i > -1; i--)
 	{
-		s = y[i];
+		double s = x[i];
 		for (int j = i + 1; j < n; j++)
-			s -= u[i][j] * y[j];
+			s -= u[i][j] * x[j];
 		x[i] = s / u[i][i];
 	}
 }
@@ -86,6 +96,7 @@ Vector LUDecomposer::Solve(Vector b) const
 	double s;
 	for (int i = 0; i < n; i++)
 	{
+		std::swap(b[i], b[w[i]]);
 		s = b[i];
 		for (int j = 0; j < i; j++)
 			s -= l[i][j] * y[j];

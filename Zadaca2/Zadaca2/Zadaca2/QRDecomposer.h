@@ -6,13 +6,16 @@
 
 class QRDecomposer
 {
-	Matrix v;
+protected:
+	Matrix a;
 	Vector d;
+	void RSolve(Vector &b, Vector &x) const;
+
 public:
 	QRDecomposer(Matrix m);
-	void Solve(const Vector &b, Vector &x) const; // belaj
+	void Solve(const Vector &b, Vector &x) const;
 	Vector Solve(Vector b) const;
-	void Solve(Matrix &b, Matrix &x) const; // belaj
+	void Solve(Matrix &b, Matrix &x) const;
 	Matrix Solve(Matrix b) const;
 	Vector MulQWith(Vector v) const;
 	Matrix MulQWith(Matrix m) const;

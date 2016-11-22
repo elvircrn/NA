@@ -11,9 +11,9 @@ class LUDecomposer
 	std::vector<int> w;
 public:
 	LUDecomposer(Matrix m);
-	void Solve(const Vector &b, Vector &x) const; // belaj
+	void Solve(const Vector &b, Vector &x) const; 
 	Vector Solve(Vector b) const;
-	void Solve(Matrix &b, Matrix &x) const; // belaj
+	void Solve(Matrix &b, Matrix &x) const; 
 	Matrix Solve(Matrix b) const;
 	Matrix GetCompactLU() const;
 	Matrix GetL() const;

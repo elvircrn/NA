@@ -121,30 +121,46 @@ bool test_12()
 {
 	Matrix m = { { 3, 4, 18, 34, 0, 2, 31 },{ 1, -3, -7, -6, 2, 4, 26 },{ 2, 1, 7, 16, 3, -1, 27 },{ 5, 11, 43, 74, 2, 0, 56 },{ 3, -3, -3, 6, -1, 14, 55 },{ -2, 0, -4, -12, 1, 5, 6 },{ 1, -6, -16, -18, 4, 4, 33 } };
 	return Rank(m) == 4;
-
 }
 
 bool test_13()
 {
-	Matrix A = { {1, -2, -2, -3}, {3, -9, 0, -9}, {-1, 2, 4, 7}, {-3, -6, 26, 2} };
-	Matrix B = { {6, 8, 2}, {3, 7, 4}, {3, 1, 9} };
+	Matrix Z = { { 11,9,24,2 },{ 1,5,2,6 },{ 3,17,18,1 },{ 2,5,7,1 } };
+	LUDecomposer d(Z);
+	Matrix L = d.GetL();
+	Matrix U = d.GetU();
+	Vector W = d.GetPermuation();
 
-	LUDecomposer lu = LUDecomposer(A);
+	Matrix res = L * U;
+	for (int i = 0; i < W.NElems(); i++)
+		for (int j = 0; j < res.NCols(); j++)
+			std::swap(res[i][j], res[W[i]][j]);
 
+	return (Z == res) && (W == Vector({ 0, 2, 2, 3 }));
+}
 
-	putchar('\n');
-	lu.GetCompactLU().Print(); putchar('\n'); putchar('\n');
-	lu.GetL().Print(); putchar('\n'); putchar('\n');
-	lu.GetU().Print(); putchar('\n'); putchar('\n');
-	
+bool test_14()
+{
+	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
+	Vector V = { 5,9,2,2 };
+	LUDecomposer d(Z);
+	Vector X(4);
+	d.Solve(V, X);
 
-	return true;
-	
-	/*
-	return lu.GetCompactLU() == Matrix(
+	return (Inverse(Z) * V) == X;
+}
 
-	);
-	*/
+bool test_15()
+{
+	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
+	Matrix A = { { 5,9,2,2 },{ -1,5,-2,6 },{ -3,10,8,-1 },{ 2,-5,7,1 } };
+
+	LUDecomposer d(Z);
+	Matrix X(Z.NRows(), Z.NCols());
+
+	d.Solve(A, X);
+
+	return (Inverse(Z) * A == X);
 }
 
 bool test_16()
@@ -155,30 +171,46 @@ bool test_16()
 	{3, 1,9} }
 	);
 
-	putchar('\n');
-	putchar('\n');
 	QRDecomposer qr = QRDecomposer(A);
-	qr.GetQ().Print();
-	putchar('\n');
-	putchar('\n');
-	qr.GetR().Print();
-	putchar('\n');
-	putchar('\n');
 
-	((qr.GetQ()) * (qr.GetR())).Print();
+	Matrix Q = qr.GetQ();
+	Matrix R = qr.GetR();
 
-	putchar('\n');
-	putchar('\n');
-	
-	return true;
+	Matrix E = Matrix(Q.NRows(), Q.NCols());
+	for (int i = 0; i < E.NRows(); i++)
+		E[i][i] = 1.0;
+
+	return (Q * R == A) && (Q * Transpose(Q) == E);
 }
 
+bool test_17()
+{
+	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
+	Vector V = { 5,9,2,2 };
+	Vector X(V.NElems());
+	QRDecomposer qr = QRDecomposer(Z);
+
+	qr.Solve(V, X);
+
+	return (Inverse(Z) * V == X);
+}
+
+bool test_18()
+{
+	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
+	Matrix A = { { 5,9,2,2 },{ -1,5,-2,6 },{ -3,10,8,-1 },{ 2,-5,7,1 } };
+	Matrix X = A;
+	QRDecomposer qr = QRDecomposer(Z);
+
+	qr.Solve(A, X);
+
+	return (Inverse(Z) * A) == X;
+}
 
 std::vector<std::function<bool()>> tests;
 
 int main()
 {
-	/*
 	tests.push_back(test_1);
 	tests.push_back(test_2);
 	tests.push_back(test_3);
@@ -192,9 +224,11 @@ int main()
 	tests.push_back(test_11);
 	tests.push_back(test_12);
 	tests.push_back(test_13);
-	*/
+	tests.push_back(test_14);
+	tests.push_back(test_15);
 	tests.push_back(test_16);
-
+	tests.push_back(test_17);
+	tests.push_back(test_18);
 
 	for (int i = 0; i < tests.size(); i++)
 		std::cout << "Test number " << i + 1 << ": " << ((tests[i]()) ? "OK\n" : "BAD\n");

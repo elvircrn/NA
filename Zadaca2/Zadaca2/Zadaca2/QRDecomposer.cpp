@@ -6,8 +6,8 @@
 
 Matrix QRDecomposer::GetQ() const
 {
-	int m = v.NRows();
-	int n = v.NCols();
+	int m = a.NRows();
+	int n = a.NCols();
 	Matrix q(m, n);
 
 	for (int j = 0; j < m; j++)
@@ -17,9 +17,9 @@ Matrix QRDecomposer::GetQ() const
 		{
 			double s = 0;
 			for (int i = k; i < m; i++)
-				s += v[i][k] * q[i][j];
+				s += a[i][k] * q[i][j];
 			for (int i = k; i < m; i++)
-				q[i][j] -= s * v[i][k];
+				q[i][j] -= s * a[i][k];
 		}
 	}
 	return q;
@@ -27,9 +27,14 @@ Matrix QRDecomposer::GetQ() const
 
 Matrix QRDecomposer::GetR() const
 {
-	Matrix r(v.NRows(), v.NRows());
-	for (int i = 0; i < v.NRows(); i++)
+	Matrix r(a);
+
+	for (int i = 0; i < a.NRows(); i++)
+	{
 		r[i][i] = d[i];
+		for (int j = i + 1; j < a.NCols(); j++)
+			r[j][i] = 0.0;
+	}
 	return r;
 }
 
@@ -37,14 +42,14 @@ QRDecomposer::~QRDecomposer()
 {
 }
 
-QRDecomposer::QRDecomposer(Matrix a) : v(a.NRows(), a.NRows()), d(a.NRows())
+QRDecomposer::QRDecomposer(Matrix ma) : a(ma), d(a.NRows())
 {
 	a.SquareCheck();
 	int m = a.NRows();
 	int n = a.NCols();
 
 	double mi;
-	
+
 	for (int k = 0; k < n; k++)
 	{
 		double s = 0;
@@ -56,13 +61,13 @@ QRDecomposer::QRDecomposer(Matrix a) : v(a.NRows(), a.NRows()), d(a.NRows())
 
 		mi = sqrt(s * (s + std::abs(a[k][k])));
 
-		if (a[k][k] < 0)
+		if (a[k][k] < 0.0)
 			s = -s;
 
-		v[k][k] = (a[k][k] + s) / mi;
+		a[k][k] = (a[k][k] + s) / mi;
 
 		for (int i = k + 1; i < m; i++)
-			v[i][k] = a[i][k] / mi;
+			a[i][k] /= mi;
 
 		d[k] = -s;
 
@@ -70,26 +75,133 @@ QRDecomposer::QRDecomposer(Matrix a) : v(a.NRows(), a.NRows()), d(a.NRows())
 		{
 			s = 0.0;
 			for (int i = k; i < m; i++)
-				s += v[i][k] * a[i][j];
+				s += a[i][k] * a[i][j];
 			for (int i = k; i < m; i++)
-				a[i][j] -= s * v[i][k];
+				a[i][j] -= s * a[i][k];
 		}
+	}
+}
+
+void QRDecomposer::Solve(const Vector & b, Vector & x) const
+{
+	x = MulQTWith(b);
+	RSolve(x, x);
+}
+
+Vector QRDecomposer::Solve(Vector b) const
+{
+	Vector x(b.NElems());
+	Solve(b, x);
+	return x;
+}
+
+void QRDecomposer::Solve(Matrix & b, Matrix & x) const
+{
+	int n = b.NRows();
+	int m = b.NCols();
+
+	Vector xx(n);
+	for (int j = 0; j < m; j++)
+	{
+		for (int i = 0; i < n; i++)
+			xx[i] = b[i][j];
+		Solve(xx, xx);
+		for (int i = 0; i < n; i++)
+			x[i][j] = xx[i];
+	}
+}
+
+Matrix QRDecomposer::Solve(Matrix b) const
+{
+	Matrix ret = b;
+	Solve(b, ret);
+	return ret;
+}
+
+void QRDecomposer::RSolve(Vector &b, Vector &x) const
+{
+	double s = 0;
+	int n = a.NRows();
+
+	for (int i = n - 1; i >= 0; i--)
+	{
+		s = b[i];
+		for (int j = i + 1; j < n; j++)
+			s -= a[i][j] * x[j];
+		x[i] = s / d[i];
 	}
 }
 
 Vector QRDecomposer::MulQWith(Vector y) const
 {
-	int n = v.NRows();
-	int m = v.NCols();
+	int n = a.NRows();
+	int m = a.NCols();
 
 	for (int k = n - 1; k > -1; k--)
 	{
 		double s = 0;
-		for (int i = k; i <= m; i++)
-			s += v[i][k] * y[i];
-		for (int i = k; i <= m; i++)
-			y[i] -= s * v[i][k];
+		for (int i = k; i < m; i++)
+			s += a[i][k] * y[i];
+		for (int i = k; i < m; i++)
+			y[i] -= s * a[i][k];
 	}
 
 	return y;
 }
+
+Matrix QRDecomposer::MulQWith(Matrix y) const
+{
+	int n = a.NRows();
+	int m = a.NCols();
+
+	for (int j = 0; j < y.NCols(); j++)
+	{
+		for (int k = n - 1; k > -1; k--)
+		{
+			double s = 0;
+			for (int i = k; i < y.NRows(); i++)
+				s += a[i][k] * y[i] [j];
+			for (int i = k; i < y.NRows(); i++)
+				y[i][j] -= s * a[i][k];
+		}
+	}
+
+	return y;
+}
+
+Vector QRDecomposer::MulQTWith(Vector y) const
+{
+	int n = a.NRows();
+	int m = a.NCols();
+
+	for (int k = 0; k < n; k++)
+	{
+		double s = 0;
+		for (int i = k; i < m; i++)
+			s += a[i][k] * y[i];
+		for (int i = k; i < m; i++)
+			y[i] -= s * a[i][k];
+	}
+
+	return y;
+}
+
+Matrix QRDecomposer::MulQTWith(Matrix y) const
+{
+	int n = a.NRows();
+
+	for (int j = 0; j < y.NCols(); j++)
+	{
+		for (int k = 0; k < n; k++)
+		{
+			double s = 0;
+			for (int i = k; i < y.NRows(); i++)
+				s += a[i][k] * y[i][j];
+			for (int i = k; i < y.NRows(); i++)
+				y[i][j] -= s * a[i][k];
+		}
+	}
+
+	return y;
+}
+
