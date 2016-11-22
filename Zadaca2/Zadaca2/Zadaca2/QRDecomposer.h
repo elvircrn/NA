@@ -9,7 +9,10 @@ class QRDecomposer
 protected:
 	Matrix a;
 	Vector d;
+
 	void RSolve(Vector &b, Vector &x) const;
+	void QRDimCheck(const Matrix &m) const;
+	void SingularZeroCheck(double x, double Eps = EPS) const;
 
 public:
 	QRDecomposer(Matrix m);

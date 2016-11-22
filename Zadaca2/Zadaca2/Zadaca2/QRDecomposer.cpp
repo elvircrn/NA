@@ -22,6 +22,7 @@ Matrix QRDecomposer::GetQ() const
 				q[i][j] -= s * a[i][k];
 		}
 	}
+
 	return q;
 }
 
@@ -35,6 +36,7 @@ Matrix QRDecomposer::GetR() const
 		for (int j = i + 1; j < a.NCols(); j++)
 			r[j][i] = 0.0;
 	}
+
 	return r;
 }
 
@@ -42,9 +44,12 @@ QRDecomposer::~QRDecomposer()
 {
 }
 
+// QR dimension check.
+// Singular check.
 QRDecomposer::QRDecomposer(Matrix ma) : a(ma), d(a.NRows())
 {
-	a.SquareCheck();
+	QRDimCheck(a);
+
 	int m = a.NRows();
 	int n = a.NCols();
 
@@ -61,8 +66,11 @@ QRDecomposer::QRDecomposer(Matrix ma) : a(ma), d(a.NRows())
 
 		mi = sqrt(s * (s + std::abs(a[k][k])));
 
+
 		if (a[k][k] < 0.0)
 			s = -s;
+
+		SingularZeroCheck(mi);
 
 		a[k][k] = (a[k][k] + s) / mi;
 
@@ -82,21 +90,39 @@ QRDecomposer::QRDecomposer(Matrix ma) : a(ma), d(a.NRows())
 	}
 }
 
+
+// Format check
+// QR square check
 void QRDecomposer::Solve(const Vector & b, Vector & x) const
 {
+	a.SquareCheck();
+	b.DimCheck(x);
+	a.DimCheck(b); // Transitive!!!
+
 	x = MulQTWith(b);
 	RSolve(x, x);
 }
 
+// Format check
+// QR square check
 Vector QRDecomposer::Solve(Vector b) const
 {
+	a.SquareCheck();
+	a.DimCheck(b);
+
 	Vector x(b.NElems());
 	Solve(b, x);
 	return x;
 }
 
+// QR Square check
+// Format check
 void QRDecomposer::Solve(Matrix & b, Matrix & x) const
 {
+	a.SquareCheck();
+	a.DimCheck(b);
+	b.DimSameCheck(x);
+
 	int n = b.NRows();
 	int m = b.NCols();
 
@@ -111,13 +137,19 @@ void QRDecomposer::Solve(Matrix & b, Matrix & x) const
 	}
 }
 
+// QR Square check
+// Format check
 Matrix QRDecomposer::Solve(Matrix b) const
 {
+	a.SquareCheck();
+	a.DimCheck(b);
+
 	Matrix ret = b;
 	Solve(b, ret);
 	return ret;
 }
 
+// Protected method, does not throw any exceptions
 void QRDecomposer::RSolve(Vector &b, Vector &x) const
 {
 	double s = 0;
@@ -132,8 +164,23 @@ void QRDecomposer::RSolve(Vector &b, Vector &x) const
 	}
 }
 
+void QRDecomposer::QRDimCheck(const Matrix &m) const
+{
+	if (m.NRows() < m.NCols())
+		throw std::domain_error("Invalid matrix format");
+}
+
+void QRDecomposer::SingularZeroCheck(double x, double Eps) const
+{
+	if (std::abs(x) < Eps)
+		throw std::domain_error("Matrix is singular");
+}
+
+// Format check
 Vector QRDecomposer::MulQWith(Vector y) const
 {
+	a.DimCheck(y);
+
 	int n = a.NRows();
 	int m = a.NCols();
 
@@ -149,8 +196,11 @@ Vector QRDecomposer::MulQWith(Vector y) const
 	return y;
 }
 
+// Format check
 Matrix QRDecomposer::MulQWith(Matrix y) const
 {
+	a.DimCheck(y);
+
 	int n = a.NRows();
 	int m = a.NCols();
 
@@ -169,8 +219,11 @@ Matrix QRDecomposer::MulQWith(Matrix y) const
 	return y;
 }
 
+// Format check
 Vector QRDecomposer::MulQTWith(Vector y) const
 {
+	a.DimCheck(y);
+
 	int n = a.NRows();
 	int m = a.NCols();
 
@@ -186,8 +239,11 @@ Vector QRDecomposer::MulQTWith(Vector y) const
 	return y;
 }
 
+// Format check
 Matrix QRDecomposer::MulQTWith(Matrix y) const
 {
+	a.DimCheck(y);
+
 	int n = a.NRows();
 
 	for (int j = 0; j < y.NCols(); j++)

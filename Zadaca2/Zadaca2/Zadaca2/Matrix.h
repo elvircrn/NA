@@ -5,7 +5,6 @@
 
 #include "Vector.h"
 
-
 class Matrix
 {
 protected:
@@ -20,10 +19,12 @@ protected:
 	void DimCheck(const Vector &v1) const;
 	void DimSameCheck(const Matrix &m1, const Matrix &m2) const;
 	void DimSameCheck(const Matrix &m1) const;
-	void CheckZero(double x) const;
+	void CheckZero(double x, double Eps) const;
 	void SquareCheck() const;
+	void ColSameCheck(const Matrix &m) const;
+	void RowSameCheck(const Matrix &m) const;
 
-	// Does not do out of bound check.
+	// Does not do out of bound check!
 	Vector& operator()(int i);
 	Vector operator()(int i) const;
 
@@ -51,21 +52,6 @@ public:
 	friend Matrix Transpose(const Matrix &m);
 	void Transpose();
 
-
-	bool operator==(const Matrix &m) const;
-
-	bool JesuLiJednaki(double x, double y, double Eps = EPS) const
-	{
-		if (std::abs(x) < EPS) 
-			x = 0;
-		if (std::abs(y) < EPS) 
-			y = 0;
-
-		return std::abs(x - y) <= Eps * (std::abs(x) + std::abs(y));
-	}
-
-	~Matrix();
-
 	friend Matrix LeftDiv(Matrix m1, Matrix m2);
 	friend Vector LeftDiv(Matrix m, Vector v);
 	friend Matrix operator /(const Matrix &m, double s);
@@ -77,9 +63,14 @@ public:
 	void Invert();
 	friend Matrix Inverse(Matrix m);
 	void ReduceToRREF();
-	Matrix RREF(Matrix m); //lolwut
+	Matrix RREF(Matrix m);
 	int Rank() const;
-	friend int Rank(Matrix a); //double -> int
+	friend int Rank(Matrix a);
+
+	bool operator==(const Matrix &m) const;
+	bool JesuLiJednaki(double x, double y, double Eps = EPS) const;
+
+	~Matrix();
 
 	friend class LUDecomposer;
 	friend class QRDecomposer;

@@ -7,7 +7,8 @@
 #include <numeric>
 #include <type_traits>
 
-#define EPS 1e-10
+//#define EPS std::numeric_limits<double>::epsilon()
+#define EPS 1e-12
 
 class Vector
 {
@@ -58,6 +59,8 @@ public:
 	}
 
 	friend class Matrix;
+	friend class LUDecomposer;
+	friend class QRDecomposer;
 };
 
 #endif // !_VECTOR_H_

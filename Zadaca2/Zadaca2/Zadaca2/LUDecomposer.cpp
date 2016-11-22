@@ -1,5 +1,6 @@
 #include "LUDecomposer.h"
 
+// NOTE: Only used for testing purposes
 bool LUDecomposer::operator==(const LUDecomposer & lud) const
 {
 	return lu == lud.lu;
@@ -10,6 +11,8 @@ LUDecomposer::~LUDecomposer()
 
 }
 
+// Square check.
+// Singular check.
 LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 {
 	lu.SquareCheck();
@@ -17,12 +20,13 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 	int n = lu.NRows();
 	int m = lu.NRows();
 	int p = 0;
-	double s;
+	double s, sum = 0.0;
 
 	for (int j = 0; j < n; j++)
 	{
 		for (int i = 0; i <= j; i++)
 		{
+			sum += std::abs(lu[i][j]);
 			s = lu[i][j];
 			for (int k = 0; k < i; k++)
 				s -= lu[i][k] * lu[k][j];
@@ -33,6 +37,7 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 
 		for (int i = j + 1; i < n; i++)
 		{
+			sum += std::abs(lu[i][j]);
 			s = lu[i][j];
 
 			for (int k = 0; k <= j - 1; k++)
@@ -42,7 +47,7 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 				p = i;
 		}
 
-		if (std::abs(lu[p][j]) < EPS)
+		if (std::abs(lu[p][j]) < EPS * sum)
 			throw std::domain_error("Matrix is singular");
 
 		if (p != j)
@@ -61,8 +66,13 @@ Jos ovu noc za njene oci
 jos ovu noc za njeno lice
 hej sviracu stimaj zice
 */
+
+// Incompatible formats.
 void LUDecomposer::Solve(const Vector & b, Vector & x) const
 {
+	lu.DimCheck(b);
+	b.DimCheck(x); // It works, trust me.
+
 	x = b;
 	int n = b.NElems();
 	Matrix l = GetL();
@@ -70,8 +80,8 @@ void LUDecomposer::Solve(const Vector & b, Vector & x) const
 
 	for (int i = 0; i < n; i++)
 	{
-		double s = x[w[i]];
-		x[w[i]] = x[i];
+		double s = x[(int)w[i]];
+		x[(int)w[i]] = x[i];
 		for (int j = 0; j < i; j++)
 			s -= l[i][j] * x[j];
 		x[i] = s;	
@@ -86,8 +96,11 @@ void LUDecomposer::Solve(const Vector & b, Vector & x) const
 	}
 }
 
+// Incompatible formats.
 Vector LUDecomposer::Solve(Vector b) const
 {
+	lu.DimCheck(b);
+
 	int n = b.NElems();
 	Vector y(n);
 	Matrix l = GetL();
@@ -96,7 +109,7 @@ Vector LUDecomposer::Solve(Vector b) const
 	double s;
 	for (int i = 0; i < n; i++)
 	{
-		std::swap(b[i], b[w[i]]);
+		std::swap(b[i], b[(int)w[i]]);
 		s = b[i];
 		for (int j = 0; j < i; j++)
 			s -= l[i][j] * y[j];
@@ -112,8 +125,13 @@ Vector LUDecomposer::Solve(Vector b) const
 	return x;
 }
 
+// Incompatible formats.
 void LUDecomposer::Solve(Matrix & b, Matrix & x) const
 {
+	b.ColSameCheck(x);
+	lu.DimCheck(b);
+	lu.DimCheck(x);
+
 	int n = b.NRows();
 	int m = b.NCols();
 
@@ -128,8 +146,10 @@ void LUDecomposer::Solve(Matrix & b, Matrix & x) const
 	}
 }
 
+// Incompatible formats.
 Matrix LUDecomposer::Solve(Matrix b) const
 {
+	lu.DimCheck(b);
 	Matrix ret(b.NRows(), b.NCols());
 	Solve(b, ret);
 	return ret;
@@ -164,8 +184,5 @@ Matrix LUDecomposer::GetU() const
 
 Vector LUDecomposer::GetPermuation() const
 {
-	Vector a(w.size());
-	for (int i = 0; i < w.size(); i++)
-		a[i] = (double)w[i];
-	return a;
+	return w;
 }

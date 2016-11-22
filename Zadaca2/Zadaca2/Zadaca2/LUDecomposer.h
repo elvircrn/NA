@@ -4,11 +4,14 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-// TODO: Throw exceptions
 class LUDecomposer
 {
+protected:
 	Matrix lu;
-	std::vector<int> w;
+	Vector w;
+
+	bool operator== (const LUDecomposer &lud) const;
+
 public:
 	LUDecomposer(Matrix m);
 	void Solve(const Vector &b, Vector &x) const; 
@@ -19,8 +22,6 @@ public:
 	Matrix GetL() const;
 	Matrix GetU() const;
 	Vector GetPermuation() const;
-
-	bool operator== (const LUDecomposer &lud) const;
 
 	~LUDecomposer();
 };

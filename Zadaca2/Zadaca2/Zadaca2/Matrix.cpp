@@ -21,13 +21,13 @@ void Matrix::ListCheck(const std::initializer_list<std::vector<double>> &l) cons
 
 void Matrix::RangeCheck(int x) const
 {
-	if (mat.empty() || x < 0 || mat.size() <= x)
+	if (mat.empty() || x < 0 || (int)mat.size() <= x)
 		throw std::range_error("Invalid index");
 }
 
 void Matrix::RangeCheck(int x, int y) const
 {
-	if (mat.empty() || mat.size() < x || mat[0].NElems() < y)
+	if (mat.empty() || (int)mat.size() < x || mat[0].NElems() < y)
 		throw std::range_error("Invalid index");
 }
 
@@ -49,9 +49,9 @@ void Matrix::DimCheck(const Matrix & m) const
 		throw std::domain_error("Incompatible formats");
 }
 
-void Matrix::CheckZero(double x) const
+void Matrix::CheckZero(double x, double Eps = EPS) const
 {
-	if (JesuLiJednaki(x, 0))
+	if (std::abs(x) < Eps)
 		throw std::domain_error("Division by zero");
 }
 
@@ -60,6 +60,18 @@ void Matrix::SquareCheck() const
 {
 	if (NCols() != NRows())
 		throw std::domain_error("Divisor matrix is singular");
+}
+
+void Matrix::ColSameCheck(const Matrix & m) const
+{
+	if (NCols() != m.NCols())
+		throw std::domain_error("Incompatible formats");
+}
+
+void Matrix::RowSameCheck(const Matrix & m) const
+{
+	if (NRows() != m.NRows())
+		throw std::domain_error("Incompatible formats");
 }
 
 Vector & Matrix::operator()(int i)
@@ -154,11 +166,11 @@ double Matrix::operator()(int i, int j) const
 
 void Matrix::Print(int width) const
 {
-	for (int i = 0; i < mat.size(); i++)
+	for (int i = 0; i < (int)mat.size(); i++)
 	{
 		for (int j = 0; j < mat[i].NElems(); j++)
 			std::cout << std::setw(width) << mat[i][j];
-		if (i < mat.size() - 1)
+		if (i < (int)mat.size() - 1)
 			std::putchar('\n');
 	}
 }
@@ -210,6 +222,9 @@ void Matrix::Transpose()
 
 bool Matrix::operator==(const Matrix & m) const
 {
+	if (NRows() != m.NRows() || NCols() != m.NCols())
+		return false;
+
 	for (int i = 0; i < m.NRows(); i++)
 		for (int j = 0; j < m.NCols(); j++)
 			if (!JesuLiJednaki(mat[i][j], m[i][j]))
@@ -217,6 +232,15 @@ bool Matrix::operator==(const Matrix & m) const
 	return true;
 }
 
+bool Matrix::JesuLiJednaki(double x, double y, double Eps) const
+{
+	if (std::abs(x) < EPS)
+		x = 0;
+	if (std::abs(y) < EPS)
+		y = 0;
+
+	return std::abs(x - y) <= Eps * (std::abs(x) + std::abs(y));
+}
 
 Matrix::~Matrix()
 {
@@ -240,14 +264,19 @@ Matrix Matrix::operator/=(Matrix B)
 	int n = B.NRows();
 	int m = A.NCols();
 
+	double sum = 0.0;
+
 	for (int k = 1; k <= B.NCols(); k++)
 	{
 		int p = k;
 		for (int i = k + 1; i <= n; i++)
-			if (std::abs(B(k, i)) > std::abs(B(k, p)))
+		{
+			sum += B[k - 1][i - 1];
+			if (std::abs(B[k - 1][i - 1]) > std::abs(B[k - 1][p - 1]))
 				p = i;
+		}
 
-		if (std::abs(B(k, p)) <= EPS)
+		if (std::abs(B[k - 1][p - 1]) <= EPS * sum)
 			throw std::domain_error("Divisor matrix is singular");
 
 		if (p != k)
@@ -270,17 +299,16 @@ Matrix Matrix::operator/=(Matrix B)
 		}
 	}
 
-
 	Matrix X = Matrix(A.NRows(), B.NCols());
 
 	for (int k = 1; k <= A.NRows(); k++)
 	{
 		for (int i = A.NCols(); i >= 1; i--)
 		{
-			double s = A(k, i);
+			double s = A[k - 1][i - 1];
 			for (int j = i + 1; j <= A.NCols(); j++)
-				s -= B(j, i) * X(k, j);
-			X(k, i) = s / B(i, i);
+				s -= B[j - 1][i - 1] * X[k - 1][j - 1];
+			X[k - 1][i - 1] = s / B[i - 1][i - 1];
 		}
 	}
 
@@ -297,14 +325,19 @@ double Matrix::Det() const
 
 	Matrix a(*this);
 
+	double sum = 0;
+
 	for (int k = 0; k < n; k++)
 	{
 		int p = k;
 		for (int i = k + 1; i < n; i++)
+		{
 			if (std::abs(a[i][k]) > std::abs(a[p][k]))
 				p = i;
+			sum += std::abs(a[i][k]);
+		}
 
-		if (std::abs(a[p][k]) < EPS)
+		if (std::abs(a[p][k]) < EPS * sum)
 			return 0.0;
 
 		if (p != k)
@@ -327,20 +360,31 @@ double Matrix::Det() const
 	return d;
 }
 
+// Square check
 void Matrix::Invert()
 {
-	Matrix& a = (*this);
 	SquareCheck();
+
+	Matrix& a = (*this); // NOTE: Does not create another matrix!
+
 	int n = NRows();
 	std::vector<int>w(n);
+
+	double sum = 0.0;
+
 	for (int k = 1; k <= n; k++)
 	{
 		int p = k;
 		for (int i = k + 1; i <= n; i++)
+		{
+			sum += std::abs(a[i - 1][k - 1]);
 			if (std::abs(a[i - 1][k - 1]) > std::abs(a[p - 1][k - 1]))
 				p = i;
-		if (std::abs(a[p - 1][k - 1]) < EPS)
+		}
+
+		if (std::abs(a[p - 1][k - 1]) < EPS * sum)
 			throw std::domain_error("Matrix is singular");
+
 		if (p != k)
 			std::swap(a(k), a(p));
 
@@ -380,7 +424,6 @@ void Matrix::ReduceToRREF()
 	std::vector<int>w(n, 0);
 
 	Matrix &a = (*this);
-
 
 	while (k <= m && l <= n)
 	{
@@ -555,6 +598,9 @@ Matrix Transpose(const Matrix & m)
 	return ret;
 }
 
+// Square check
+// Format check
+// Singular check
 Matrix LeftDiv(Matrix A, Matrix B)
 {
 	A.SquareCheck();
@@ -563,14 +609,19 @@ Matrix LeftDiv(Matrix A, Matrix B)
 	int n = A.NRows();
 	int m = B.NCols();
 
+	double sum = 0.0;
+
 	for (int k = 1; k <= n; k++)
 	{
 		int p = k;
 		for (int i = k + 1; i <= n; i++)
+		{
+			sum += std::abs(A[i - 1][k - 1]);
 			if (std::abs(A[i - 1][k - 1]) > std::abs(A[p - 1][k - 1]))
 				p = i;
+		}
 
-		if (std::abs(A(p, k)) <= EPS)
+		if (std::abs(A[p - 1][k - 1]) <= EPS * sum)
 			throw std::domain_error("Divisor matrix is singular");
 
 		if (p != k)
@@ -579,10 +630,9 @@ Matrix LeftDiv(Matrix A, Matrix B)
 			std::swap(B(k), B(p));
 		}
 
-
 		for (int i = k + 1; i <= n; i++)
 		{
-			double mi = A[i - 1][k - 1] / A[k][k];
+			double mi = A[i - 1][k - 1] / A[k - 1][k - 1];
 
 			A(i) -= mi * A(k);
 			B(i) -= mi * B(k);
@@ -595,16 +645,19 @@ Matrix LeftDiv(Matrix A, Matrix B)
 	{
 		for (int i = n; i >= 1; i--)
 		{
-			double s = B(i, k);
+			double s = B[i - 1][k - 1];
 			for (int j = i + 1; j <= n; j++)
-				s -= A(i, j) * X(j, k);
-			X(i, k) = s / A(i, i);
+				s -= A[i - 1][j - 1] * X[j - 1][k - 1];
+			X[i - 1][k - 1] = s / A[i - 1][i - 1];
 		}
 	}
 
 	return X;
 }
 
+// Square check
+// Format check
+// Singular check
 Vector LeftDiv(Matrix A, Vector B)
 {
 	A.SquareCheck();
@@ -612,15 +665,20 @@ Vector LeftDiv(Matrix A, Vector B)
 
 	int n = A.NRows();
 	int m = B.NElems();
+	
+	double sum = 0.0;
 
 	for (int k = 1; k <= n; k++)
 	{
 		int p = k;
 		for (int i = k + 1; i <= n; i++)
-			if (std::abs(A(i, k)) > std::abs(A(p, k)))
+		{
+			sum += std::abs(A[i - 1][k - 1]);
+			if (std::abs(A[i - 1][k - 1]) > std::abs(A[p - 1][k - 1]))
 				p = i;
+		}
 
-		if (std::abs(A(p, k)) <= EPS)
+		if (std::abs(A[p - 1][k - 1]) <= EPS * sum)
 			throw std::domain_error("Divisor matrix is singular");
 
 		if (p != k)
@@ -631,7 +689,7 @@ Vector LeftDiv(Matrix A, Vector B)
 
 		for (int i = k + 1; i <= n; i++)
 		{
-			double mi = A[i - 1] [k - 1] / A[k - 1] [k - 1];
+			double mi = A[i - 1][k - 1] / A[k - 1][k - 1];
 			A(i) -= mi * A(k);
 			B(i) -= mi * B(k);
 		}
@@ -643,16 +701,18 @@ Vector LeftDiv(Matrix A, Vector B)
 	{
 		for (int i = n; i >= 1; i--)
 		{
-			double s = B [i - 1];
+			double s = B[i - 1];
 			for (int j = i + 1; j <= n; j++)
 				s -= A(i, j) * X(j);
-			X(i) = s / A[i - 1] [i - 1];
+			X(i) = s / A[i - 1][i - 1];
 		}
 	}
 
 	return X;
 }
 
+
+// Zero check
 Matrix operator/(const Matrix & m, double s)
 {
 	m.CheckZero(s);
@@ -663,6 +723,9 @@ Matrix operator/(const Matrix & m, double s)
 	return ret;
 }
 
+// Format check
+// Singular check
+// Square check
 Matrix operator/(Matrix A, Matrix B)
 {
 	B.SquareCheck();
@@ -671,14 +734,19 @@ Matrix operator/(Matrix A, Matrix B)
 	int n = B.NRows();
 	int m = A.NCols();
 
+	double sum = 0.0;
+
 	for (int k = 1; k <= B.NCols(); k++)
 	{
 		int p = k;
 		for (int i = k + 1; i <= n; i++)
+		{
+			sum += std::abs(B[k - 1][i - 1]);
 			if (std::abs(B(k, i)) > std::abs(B(k, p)))
 				p = i;
+		}
 
-		if (std::abs(B(k, p)) <= EPS)
+		if (std::abs(B(k, p)) <= EPS * sum)
 			throw std::domain_error("Divisor matrix is singular");
 
 		if (p != k)
@@ -718,6 +786,7 @@ Matrix operator/(Matrix A, Matrix B)
 	return X;
 }
 
+// Square check
 double Det(Matrix m)
 {
 	m.SquareCheck();
@@ -727,14 +796,19 @@ double Det(Matrix m)
 	// Ne oduzimati bodove zbog ovog jer ne pravim novi objekat.
 	Matrix& a = m;
 
+	double sum = 0.0;
+
 	for (int k = 0; k < n; k++)
 	{
 		int p = k;
 		for (int i = k + 1; i < n; i++)
+		{
 			if (std::abs(a[i][k]) > std::abs(a[p][k]))
 				p = i;
+			sum += a[i][k];
+		}
 
-		if (std::abs(a[p][k]) < EPS)
+		if (std::abs(a[p][k]) < EPS * sum)
 			return 0.0;
 
 		if (p != k)
@@ -757,8 +831,11 @@ double Det(Matrix m)
 	return d;
 }
 
+// Square check
+// Singular check
 Matrix Inverse(Matrix m)
 {
+	m.SquareCheck();
 	m.Invert();
 	return m;
 }

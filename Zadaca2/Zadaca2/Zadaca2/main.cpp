@@ -134,7 +134,7 @@ bool test_13()
 	Matrix res = L * U;
 	for (int i = 0; i < W.NElems(); i++)
 		for (int j = 0; j < res.NCols(); j++)
-			std::swap(res[i][j], res[W[i]][j]);
+			std::swap(res[i][j], res[(int)W[i]][j]);
 
 	return (Z == res) && (W == Vector({ 0, 2, 2, 3 }));
 }
@@ -207,7 +207,14 @@ bool test_18()
 	return (Inverse(Z) * A) == X;
 }
 
+
+bool exc_test1()
+{
+	return true;
+}
+
 std::vector<std::function<bool()>> tests;
+std::vector<std::function<bool()>> exc_tests;
 
 int main()
 {
@@ -230,31 +237,17 @@ int main()
 	tests.push_back(test_17);
 	tests.push_back(test_18);
 
-	for (int i = 0; i < tests.size(); i++)
+	for (int i = 0; i < (int)tests.size(); i++)
 		std::cout << "Test number " << i + 1 << ": " << ((tests[i]()) ? "OK\n" : "BAD\n");
-	getchar();
+
+	std::putchar('\n');
+
+	exc_tests.push_back(exc_test1);
+
+	for (int i = 0; i < (int)exc_tests.size(); i++)
+		std::cout << "Exception test number " << i + 1 << ": " << ((exc_tests[i]()) ? "OK\n" : "BAD\n");
+
+	char c = getchar();
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
