@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES // msvc
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -5,11 +7,15 @@
 #include <cstring>
 #include <functional>
 #include <vector>
+#include <cmath>
 
 #include "QRDecomposer.h"
 #include "LUDecomposer.h"
 #include "Matrix.h"
 #include "Vector.h"
+#include "PolynomialInterpolator.h"
+
+#pragma region Zadaca2
 
 bool test_1()
 {
@@ -303,7 +309,6 @@ bool exc_test6()
 bool exc_test7()
 {
 	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
-
 	try
 	{
 		Inverse(singular);
@@ -560,6 +565,10 @@ bool exc_test22()
 	return false;
 }
 
+
+
+
+
 std::vector<std::function<bool()>> tests;
 std::vector<std::function<bool()>> exc_tests;
 
@@ -611,6 +620,9 @@ void initExcTests()
 	exc_tests.push_back(exc_test22);
 }
 
+
+#pragma endregion
+
 void runTests()
 {
 	for (int i = 0; i < (int)tests.size(); i++)
@@ -628,14 +640,65 @@ void test()
 	initTests();
 	initExcTests();
 	runTests();
-	putchar('\n');
 	runExcTests();
+}
+
+void testZadaca2()
+{
+	std::cout << "Zadaca 2 testovi:\n";
+	test();
+}
+
+template <typename FunTip>
+double Limit(FunTip f, double x0, double eps = 1e-8, double nmax = 20);
+
+void zadaca3Tests()
+{
+
 }
 
 int main()
 {
-	test();
+	testZadaca2();
+
+	std::vector<std::pair<double, double>> data = { { 0.0, 0.0 }, { M_PI / 10.0, sin (M_PI / 10.0) } };
+	PolynomialInterpolator poly = PolynomialInterpolator(data);
+
+	for (double i = M_PI / 5.0; i < 2 * M_PI; i += M_PI / 10.0)
+		poly.AddPoint({ i, sin(i) });
+
+	std::cout << "AddPoint: " << poly(M_PI / 3) << "\n\n";
+
+	data.clear();
+	for (double i = 0.0; i < 2 * M_PI; i += M_PI / 10.0)
+		data.emplace_back(i, sin(i));
+	PolynomialInterpolator poly2 = PolynomialInterpolator(data);
+	
+	std::cout << "\n\n" << poly2(M_PI / 3) << ' ' << sin (M_PI / 3.0) << '\n';
+
 	char c = getchar();
 	return 0;
 }
 
+template <typename FunTip>
+double Limit(FunTip f, double x0, double eps, double nmax)
+{
+	double yOld = GMath::INF;
+	std::vector<double> y(nmax);
+	double h = 1e-3 - 1e-2;
+	for (int i = 1; i <= nmax; i++)
+	{
+		y[i - 1] = f(x0 + h);
+		double p = 2.0;
+		for (int k = i - 1; k >= 1; k--)
+		{
+			y[k - 1] = (p * y[k] - y[k - 1]) / (p - 1.0);
+			p = 2 * p;
+		}
+		if (std::abs(y[0] - yOld) < eps)
+			return y[0];
+		yOld = y[0];
+		h /= 2.0;
+	}
+	return y[0];
+}

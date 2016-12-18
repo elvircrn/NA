@@ -62,12 +62,6 @@ LUDecomposer::LUDecomposer(Matrix a) : lu(a), w(a.NRows())
 	}
 }
 
-/*
-Jos ovu noc za njene oci
-jos ovu noc za njeno lice
-hej sviracu stimaj zice
-*/
-
 // Incompatible formats.
 void LUDecomposer::Solve(const Vector & b, Vector & x) const
 {

@@ -1,0 +1,91 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <cstdlib>
+
+int FLIP(int x) { return (x + 1) % 2; }
+int MOD(int x) { return x % 2; }
+
+int f (int odakle, int dokle, int sta, int kolko)
+{
+    std::vector<int> v [2] = { std::vector<int>(sta + 5), std::vector<int>(sta + 5) };
+        std::cout << MOD(it) << '\n';
+    for (int i = odakle; i <= dokle; i++)
+        v[MOD(kolko)][i] = 1;
+
+    int it = kolko - 1;
+    int diff = dokle - odakle + 1;
+
+    while (it--)
+    {
+        std::cout << MOD(it) << '\n';
+        for (int i = 0; i <= sta; i++)
+        {
+            v [MOD(it)] [i] = 0;
+            for (int j = odakle; j <= dokle; j++)
+                v[MOD(it)] [i] += (i - j >= 0) ? v[FLIP(it)] [i - j] : 0;
+        }
+        for (int i = 1; i <= 10; i++)
+            std::cout << v[MOD(it)] [i] << " t^{" << i << "}" << ((i == sta) ? "" : " + ");
+        std::cout << '\n';
+    }
+
+    return v[0] [sta];
+}
+
+int main()
+{
+    std::cout << f(0, 4, 18, 7) << '\n';
+
+
+    return 0;
+}
+
+
+/*
+
+0*x^5
+1*x^6
+2*x^7
+3*x^8
+4*x^9
+5*x^10
+6*x^11
+5*x^12
+4*x^13
+3*x^14
+2*x^15
+1*x^16
+0*x^17
+0*x^18
+0*x^19
+
+
+P =
+0*x^37 + 0*x^36 + 0*x^35 + 0*x^34 + 0*x^33 + 1*x^32 + 4*x^31 + 10*x^30 + 20*x^29 + 35*x^28 + 56*x^27 +
+80*x^26 + 104*x^25 + 125*x^24 + 140*x^23 + 146*x^22 + 140*x^21 + 125*x^20 + 104*x^19 + 80*x^18 + 56*x^17 + 35*x^16 + 20*x^15 +
+10*x^14 + 4*x^13 + 1*x^12 + 0*x^11 + 0*x^10 + 0*x^9 + 0*x^8 + 0*x^7 + 0*x^6 + 0*x^5 + 0*x^4 + 0*x^3 + 0*x^2 + 0*x^1 + 0*x^0
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
