@@ -14,667 +14,293 @@
 #include "Matrix.h"
 #include "Vector.h"
 #include "PolynomialInterpolator.h"
+#include "LinearInterpolator.h"
+#include "TestUtil.h"
+#include "SplineInterpolator.h"
 
 #pragma region Zadaca2
 
-bool test_1()
+void generalTest()
 {
-	Matrix AA({ {2, 1, 3}, {2, 6, 8}, {6, 8, 18} });
-	Matrix BB({ {1}, {3}, {5} });
+	std::cout << "General tests\n";
+	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI }, { 0, 2 * M_PI }, { -0.5, 0.5 }, { -0.5, 0.5 }, { -10, 10 }, { -3, 3 } };
+	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
 
-	return LeftDiv(AA, BB) == Matrix({ {0.3}, {0.4}, {0.0} });
-}
-
-bool test_2()
-{
-	Matrix AA({ { 2, 1, 3 },{ 2, 6, 8 },{ 6, 8, 18 } });
-	Vector BB({ 1, 3, 5 });
-
-	return LeftDiv(AA, BB) == Vector({ 0.3, 0.4, 0.0 });
-}
-
-bool test_3()
-{
-	Matrix A = Matrix({ { -2, -1, 3 }, { 2, 6, 8 }, { 6, 8, 18 } });
-	Matrix B = Matrix({ { 10, 3, 5 } });
-
-	return (B / A) == Matrix({ { -2.35, -1.925, 1.525 } });
-}
-
-bool test_4()
-{
-	Matrix mat = { {9, 2, 3}, {4, 5, 6}, {7, 8, 9} };
-	return mat.JesuLiJednaki(-24.0, mat.Det(), 1e-12);
-}
-
-bool test_5()
-{
-	Matrix mat = { {9, 2, 3}, {4, 5, 6}, {7, 8, 9} };
-	return mat.JesuLiJednaki(-24.0, Det(mat), 1e-12);
-}
-
-bool test_6()
-{
-	Matrix A = Matrix({ { -2, -1, 3 },{ 2, 6, 8 },{ 6, 8, 18 } });
-	Matrix B = Matrix({ { 10, 3, 5 } });
-
-	B /= A;
-
-	return B == Matrix({ { -2.35, -1.925, 1.525 } });
-}
-
-bool test_7()
-{
-	Matrix A = Matrix({ { -2, -1, 3 },{ 2, 6, 8 },{ 6, 8, 18 } });
-
-	A.Invert();
-
-	return A == Matrix({ {-0.275, -0.2625, 0.1625},
-	{ -0.075, 0.3375, -0.1375 },
-	{ 0.125, -0.0625, 0.0625} });
-}
+	std::vector<double(*)(double)> functions = {
+		sin,
+		cos,
+		acos,
+		atan,
+		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
+		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
+	};
 
 
-bool test_8()
-{
-	Matrix A = Matrix({ { -2, -1, 3 },{ 2, 6, 8 },{ 6, 8, 18 } });
-	return Inverse(A) == Matrix({ { -0.275, -0.2625, 0.1625 },
-	{ -0.075, 0.3375, -0.1375 },
-	{ 0.125, -0.0625, 0.0625 } });
-}
+	int seedSize = 50, sampleSize = 30;
 
-
-bool test_9()
-{
-	Matrix m = { {3, 4, 18, 34, 0, 2, 31}, {1, -3, -7, -6, 2, 4, 26}, {2, 1, 7, 16, 3, -1, 27}, {5, 11, 43, 74, 2, 0, 56}, {3, -3, -3, 6, -1, 14, 55}, {-2, 0, -4, -12, 1, 5, 6}, {1, -6, -16, -18, 4, 4, 33} };
-
-	m.ReduceToRREF();
-
-	return m == Matrix(
+	for (int i = 0; i < names.size(); i++)
 	{
-		{ 1, 0, 2, 6, 0, 0, 7 },
-		{ 0,    1,    3,    4,    0,    0,    1 },
-		{ 0,    0,    0,    0,    1,    0,    5 },
-		{ 0,    0,    0,    0,    0,    1,    3 },
-		{ 0,    0,    0,    0,    0,    0,    0 },
-		{ 0,    0,    0,    0,    0,    0,    0 },
-		{ 0,    0,    0,    0,    0,    0,    0 }
-	});
-}
+		std::cout << "\n\nAnalysis of " + names[i] << '\n';
+		std::cout << "Linear:\n";
+		TestUtil::TestInterp<LinearInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
 
-bool test_10()
-{
-	Matrix m = { { 3, 4, 18, 34, 0, 2, 31 },{ 1, -3, -7, -6, 2, 4, 26 },{ 2, 1, 7, 16, 3, -1, 27 },{ 5, 11, 43, 74, 2, 0, 56 },{ 3, -3, -3, 6, -1, 14, 55 },{ -2, 0, -4, -12, 1, 5, 6 },{ 1, -6, -16, -18, 4, 4, 33 } };
+		std::cout << "Polynomial:\n";
+		TestUtil::TestInterp<PolynomialInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
 
-	return m.RREF(m) == Matrix(
-	{
-		{ 1, 0, 2, 6, 0, 0, 7 },
-		{ 0,    1,    3,    4,    0,    0,    1 },
-		{ 0,    0,    0,    0,    1,    0,    5 },
-		{ 0,    0,    0,    0,    0,    1,    3 },
-		{ 0,    0,    0,    0,    0,    0,    0 },
-		{ 0,    0,    0,    0,    0,    0,    0 },
-		{ 0,    0,    0,    0,    0,    0,    0 }
-	});
-}
-
-bool test_11()
-{
-	Matrix m = { { 3, 4, 18, 34, 0, 2, 31 },{ 1, -3, -7, -6, 2, 4, 26 },{ 2, 1, 7, 16, 3, -1, 27 },{ 5, 11, 43, 74, 2, 0, 56 },{ 3, -3, -3, 6, -1, 14, 55 },{ -2, 0, -4, -12, 1, 5, 6 },{ 1, -6, -16, -18, 4, 4, 33 } };
-	return m.Rank() == 4;
-}
-
-bool test_12()
-{
-	Matrix m = { { 3, 4, 18, 34, 0, 2, 31 },{ 1, -3, -7, -6, 2, 4, 26 },{ 2, 1, 7, 16, 3, -1, 27 },{ 5, 11, 43, 74, 2, 0, 56 },{ 3, -3, -3, 6, -1, 14, 55 },{ -2, 0, -4, -12, 1, 5, 6 },{ 1, -6, -16, -18, 4, 4, 33 } };
-	return Rank(m) == 4;
-}
-
-bool test_13()
-{
-	Matrix Z = { { 11,9,24,2 },{ 1,5,2,6 },{ 3,17,18,1 },{ 2,5,7,1 } };
-	LUDecomposer d(Z);
-	Matrix L = d.GetL();
-	Matrix U = d.GetU();
-	Vector W = d.GetPermutation();
-
-	Matrix res = L * U;
-	for (int i = 0; i < W.NElems(); i++)
-		for (int j = 0; j < res.NCols(); j++)
-			std::swap(res[i][j], res[(int)W[i]][j]);
-
-	return (Z == res) && (W == Vector({ 0, 2, 2, 3 }));
-}
-
-bool test_14()
-{
-	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
-	Vector V = { 5,9,2,2 };
-	LUDecomposer d(Z);
-	Vector X(4);
-	d.Solve(V, X);
-
-	return (Inverse(Z) * V) == X;
-}
-
-bool test_15()
-{
-	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
-	Matrix A = { { 5,9,2,2 },{ -1,5,-2,6 },{ -3,10,8,-1 },{ 2,-5,7,1 } };
-
-	LUDecomposer d(Z);
-	Matrix X(Z.NRows(), Z.NCols());
-
-	d.Solve(A, X);
-
-	return (Inverse(Z) * A == X);
-}
-
-bool test_16()
-{
-	Matrix A = Matrix(
-	{ {6, 8, 2},
-	{5, 7, 4},
-	{3, 1,9} }
-	);
-
-	QRDecomposer qr = QRDecomposer(A);
-
-	Matrix Q = qr.GetQ();
-	Matrix R = qr.GetR();
-
-	Matrix E = Matrix(Q.NRows(), Q.NCols());
-	for (int i = 0; i < E.NRows(); i++)
-		E[i][i] = 1.0;
-
-	return (Q * R == A) && (Q * Transpose(Q) == E);
-}
-
-bool test_17()
-{
-	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
-	Vector V = { 5,9,2,2 };
-	Vector X(V.NElems());
-	QRDecomposer qr = QRDecomposer(Z);
-
-	qr.Solve(V, X);
-
-	return (Inverse(Z) * V == X);
-}
-
-bool test_18()
-{
-	Matrix Z = { { 1,9,2,2 },{ 1,5,-2,6 },{ 3,7,8,1 },{ 2,5,7,1 } };
-	Matrix A = { { 5,9,2,2 },{ -1,5,-2,6 },{ -3,10,8,-1 },{ 2,-5,7,1 } };
-	Matrix X = A;
-	QRDecomposer qr = QRDecomposer(Z);
-
-	qr.Solve(A, X);
-
-	return (Inverse(Z) * A) == X;
-}
-
-
-bool exc_test1()
-{
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
-	Matrix A = { { -1, 2, 0, 1 }, { 4, 5, 1, 2 }, {3, 2, 6, 8 }, {1, 5, 0, 3} };
-
-	putchar('\n');
-	putchar('\n');
-	try
-	{
-		(LeftDiv(singular, A)).Print();
+		std::cout << "Splyne:\n";
+		TestUtil::TestInterp<SplineInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
 }
 
-bool exc_test2()
+double poly(double x)
 {
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
-	Matrix A = { { -1, 2, 0, 1 },{ 4, 5, 1, 2 },{ 3, 2, 6, 8 },{ 1, 5, 0, 3 } };
-
-	Vector v = { 1, 4, 2, 1 };
-	try
+	std::cout << "Poly tests\n";
+	std::vector<double> a = { -8, -6, 3, 1.0 };
+	double ret = 0, deg = 1.0;
+	for (int i = 0; i < a.size(); i++)
 	{
-		LeftDiv(singular, v);
+		ret += deg * a[i];
+		deg *= x;
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
+	return ret;
 }
 
-bool exc_test3()
+double poly(std::vector<double> coeffs, double x)
 {
-	Matrix badFormat = { {4, 5, 12 },{ 3, 2, 8 },{ 1, 0, 3 } };
-	Vector v = { 1, 4, 2, 1 };
+	double deg = 1.0, ret = 0.0;
+
+	for (double a : coeffs)
+	{
+		ret += deg * a;
+		deg *= x;
+	}
+
+	return ret;
+}
+
+// Needs work
+void polyTest()
+{
+	std::cout << "\n\PolyInterp on a polynomial test\n";
+	PolynomialInterpolator pol({ { -5, poly(-5) }, { 2, poly(2) }, { 4, poly(4) } });
+	//PolynomialInterpolator pol({ { -4, 0 }, { -1, 0 }, { 2, 0 } });
+
+	std::vector<double> coeffs = pol.GetCoefficients();
+
+	for (double x : coeffs)
+		std::cout << x << ' ';
+	std::cout << '\n';
+}
+
+void wTest()
+{
+	std::cout << "\n\nGetCoefficients() test; Passes if both values are the same.\n";
+	PolynomialInterpolator polInter = TestUtil::TestInterp<PolynomialInterpolator>(sin, 0.0, 2 * M_PI, 20, 30);
+	std::vector<double> w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+}
+
+void argumentSizeTest()
+{
+	std::cout << "\n\nNot enough points passed; Passes if 3 exceptions are thrown.\n";
+
+	std::vector<GMath::Point2D> v = { { 0.0, 0.0 } };
 
 	try
 	{
-		LeftDiv(badFormat, v);
+		auto l = LinearInterpolator(v);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test4()
-{
-	Matrix A = { { 1, 2, 3, 4 }, { 2, 2, 1, 1, } };
+	catch (std::exception e)
+	{
+		std::cout << e.what() << '\n';
+	}
 
 	try
 	{
-		A /= 0.0;
+		auto p = PolynomialInterpolator(v);
 	}
-	catch (std::domain_error r) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test5()
-{
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
-	Matrix b = { { 1, 2, 3, 4 }, { 3, 3, 3, 3 }, {2, 2, 2, 2}, {8, 1, 2, 4 } };
-	
-	try
+	catch (std::exception e)
 	{
-		b / singular;
+		std::cout << e.what() << '\n';
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test6()
-{
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
 
 	try
 	{
-		singular.Invert();
+		auto s = SplineInterpolator(v);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
+	catch (std::exception e)
+	{
+		std::cout << e.what() << '\n';
+	}
 }
 
-bool exc_test7()
+void sameXTest()
 {
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
+	std::cout << "\n\nSame x-coordinate test; Passes if 3 exceptions are thrown.\n";
+	std::vector<GMath::Point2D> v = { { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 } };
 	try
 	{
-		Inverse(singular);
+		auto l = LinearInterpolator(v);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test8()
-{
-	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
+	catch (std::exception e)
+	{
+		std::cout << e.what() << '\n';
+	}
 
 	try
 	{
-		LUDecomposer lu = LUDecomposer(singular);
+		auto p = PolynomialInterpolator(v);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test9()
-{
-	Matrix m = { { 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
+	catch (std::exception e)
+	{
+		std::cout << e.what() << '\n';
+	}
 
 	try
 	{
-		LUDecomposer lu = LUDecomposer(m);
+		auto s = SplineInterpolator(v);
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
+	catch (std::exception e)
+	{
+		std::cout << e.what() << '\n';
+	}
 }
 
-bool exc_test10()
+//void linInterpOutOfBoundsTest()
+//{
+//	std::cout << "\n\nPasses if all values are the same\n";
+//	bool ok = true;
+//
+//	auto li = TestUtil::GetInterp<LinearInterpolator>(sin, 0, 2 * M_PI, 20);
+//
+//	std::vector<double> res;
+//
+//	for (int i = 0 )
+//}
+
+void addPointTest()
 {
-	Vector v3 = { 1, 2, 3 };
-	Vector v4 = { 1, 2, 3, 4 };
-	Matrix z = { { 1,19,2,2 },{ 1,50,-2,6 },{ 30,7,8,1 },{ 2,5,7,1 } };
+	std::cout << "\n\nAddPoint test; Passes if values from 2 instances of LinearInterpolation class are the same.\n";
 
-	LUDecomposer lu = LUDecomposer(z);
+	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI }, { 0, 2 * M_PI }, { -0.5, 0.5 }, { -0.5, 0.5 }, { -10, 10 }, { -3, 3 } };
+	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
+	std::vector<double(*)(double)> functions = {
+		sin,
+		cos,
+		acos,
+		atan,
+		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
+		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
+	};
 
+	for (int i = 0; i < 5; i++)
+	{
+		std::vector<GMath::Point2D> data = TestUtil::LinSpace(functions[i], range[i].first, range[i].second, 20);
+		PolynomialInterpolator regular(data);
+
+		auto dataCpy = data;
+		data.resize(2);
+		
+		PolynomialInterpolator addInter(data);
+
+		for (int i = 2; i < dataCpy.size(); i++)
+			addInter.AddPoint(dataCpy[i]);
+		
+		std::cout << names[i] << " test: ";
+
+		bool ok = true;
+
+		for (int j = 0; j < addInter.GetCoefficients().size(); j++)
+			if (!GMath::Equal(addInter.GetCoefficients()[j], regular.GetCoefficients()[j]))
+				ok = false;
+
+		if (ok)
+			std::cout << "Test OK\n";
+		else
+			std::cout << "Not OK\n";
+	}
+}
+
+void addPointExcTest()
+{
+	std::cout << "\n\nAdd point test; Passes if exception is thrown\n";
+	bool ok = true;
 	try
 	{
-		lu.Solve(v3, v4);
+		PolynomialInterpolator pi = TestUtil::GetInterp<PolynomialInterpolator>(sin, 0, 2 * M_PI, 10);
+		pi.AddPoint({ 0.0, 0.0 });
+		ok = false;
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test11()
-{
-	Vector v3 = { 1, 2, 3 };
-	Vector v4 = { 1, 2, 3 };
-	Matrix z = { { 1,19,2,2 },{ 1,50,-2,6 },{ 30,7,8,1 },{ 2,5,7,1 } };
-
-	LUDecomposer lu = LUDecomposer(z);
-
-	try
+	catch (std::domain_error d)
 	{
-		lu.Solve(v3, v4);
+		std::cout << d.what() << '\n';
 	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-	return false;
-}
 
-bool exc_test12()
-{
-	Vector v3 = { 1, 2, 3 };
-	Matrix z = { { 1,19,2,2 },{ 1,50,-2,6 },{ 30,7,8,1 },{ 2,5,7,1 } };
-
-	LUDecomposer lu = LUDecomposer(z);
-
-	try
-	{
-		lu.Solve(v3);
-	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-	return false;
-}
-
-bool exc_test13()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 } };
-	Matrix a = { { 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 } };
-
-	LUDecomposer lu = LUDecomposer(z);
-
-	try
-	{
-		lu.Solve(a);
-	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test14()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 } };
-	Matrix a = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 } };
-	Matrix x(4, 3);
-
-	LUDecomposer lu = LUDecomposer(z);
-
-	try
-	{
-		lu.Solve(a, x);
-	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-// NRows() > NCols()
-bool exc_test15()
-{
-	Matrix m = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 } };
-
-	try
-	{
-		QRDecomposer qr = QRDecomposer(m);
-	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-	return false;
-}
-
-bool exc_test16()
-{
-	Matrix m(4, 4);
-
-	try
-	{
-		QRDecomposer qr = QRDecomposer(m);
-	}
-	catch (std::domain_error d) { return true; }
-	catch (...) { return false; }
-	return false;
-}
-
-// QR square check.
-bool exc_test17()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 }, {1, 2, 1, 1} };
-	QRDecomposer qr(z);
-	Vector v{ 1, 2, 3, 4 };
-	Vector a(4);
-
-	try
-	{
-		qr.Solve(v, a);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-// QR square check.
-bool exc_test18()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
-	QRDecomposer qr(z);
-	Vector v{ 1, 2, 3, 4 };
-	Vector a(4);
-
-	try
-	{
-		qr.Solve(v);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-// QR Format check
-bool exc_test19()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
-	QRDecomposer qr(z);
-	Vector v{ 1, 2, 3, 4 };
-	Vector a(4);
-
-	try
-	{
-		qr.Solve(v);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test20()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
-	QRDecomposer qr(z);
-
-	Matrix x = { { 1 } };
-
-	try
-	{
-		qr.MulQTWith(x);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test21()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
-	QRDecomposer qr(z);
-
-	Vector x { 1, 2 };
-
-	try
-	{
-		qr.MulQTWith(x);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-bool exc_test22()
-{
-	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
-	QRDecomposer qr(z);
-
-	Matrix x{ { 1, 2 } };
-
-	try
-	{
-		qr.MulQTWith(x);
-	}
-	catch (std::domain_error e) { return true; }
-	catch (...) { return false; }
-
-	return false;
-}
-
-
-
-
-
-std::vector<std::function<bool()>> tests;
-std::vector<std::function<bool()>> exc_tests;
-
-void initTests()
-{
-	tests.push_back(test_1);
-	tests.push_back(test_2);
-	tests.push_back(test_3);
-	tests.push_back(test_4);
-	tests.push_back(test_5);
-	tests.push_back(test_6);
-	tests.push_back(test_7);
-	tests.push_back(test_8);
-	tests.push_back(test_9);
-	tests.push_back(test_10);
-	tests.push_back(test_11);
-	tests.push_back(test_12);
-	tests.push_back(test_13);
-	tests.push_back(test_14);
-	tests.push_back(test_15);
-	tests.push_back(test_16);
-	tests.push_back(test_17);
-	tests.push_back(test_18);
-}
-
-void initExcTests()
-{
-	exc_tests.push_back(exc_test1);
-	exc_tests.push_back(exc_test2);
-	exc_tests.push_back(exc_test3);
-	exc_tests.push_back(exc_test4);
-	exc_tests.push_back(exc_test5);
-	exc_tests.push_back(exc_test6);
-	exc_tests.push_back(exc_test7);
-	exc_tests.push_back(exc_test8);
-	exc_tests.push_back(exc_test9);
-	exc_tests.push_back(exc_test10);
-	exc_tests.push_back(exc_test11);
-	exc_tests.push_back(exc_test12);
-	exc_tests.push_back(exc_test13);
-	exc_tests.push_back(exc_test14);
-	exc_tests.push_back(exc_test15);
-	exc_tests.push_back(exc_test16);
-	exc_tests.push_back(exc_test17);
-	exc_tests.push_back(exc_test18);
-	exc_tests.push_back(exc_test19);
-	exc_tests.push_back(exc_test20);
-	exc_tests.push_back(exc_test21);
-	exc_tests.push_back(exc_test22);
-}
-
-
-#pragma endregion
-
-void runTests()
-{
-	for (int i = 0; i < (int)tests.size(); i++)
-		std::cout << "Test number " << i + 1 << ": " << ((tests[i]()) ? "OK\n" : "BAD\n");
-}
-
-void runExcTests()
-{
-	for (int i = 0; i < (int)exc_tests.size(); i++)
-		std::cout << "Exception test number " << i + 1 << ": " << ((exc_tests[i]()) ? "OK\n" : "BAD\n");
-}
-
-void test()
-{
-	initTests();
-	initExcTests();
-	runTests();
-	runExcTests();
-}
-
-void testZadaca2()
-{
-	std::cout << "Zadaca 2 testovi:\n";
-	test();
+	if (ok)
+		std::cout << "Test OK\n";
+	else
+		std::cout << "Not OK\n";
 }
 
 template <typename FunTip>
 double Limit(FunTip f, double x0, double eps = 1e-8, double nmax = 20);
 
-void zadaca3Tests()
+void basicLimitTest()
 {
+	std::cout << "\n\nBasic limit test, passes if maximum error is 'relatively' small.\n";
+	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI },{ 0, 2 * M_PI },{ -0.5, 0.5 },{ -0.5, 0.5 },{ -10, 10 },{ -3, 3 } };
+	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
+	std::vector<double(*)(double)> functions = {
+		sin,
+		cos,
+		acos,
+		atan,
+		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
+		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
+	};
+	std::vector<int> testSizes = { 10, 10, 10, 10, 10, 10 };
 
+	int testSize = 10;
+
+	for (int i = 0; i < functions.size(); i++)
+	{
+		std::cout << names[i] << " test\n";
+		double max = 0.0;
+
+		double step = (range[i].second - range[i].first) / (testSizes[i] - 1);
+
+		for (double j = range[i].first; j < range[i].second || GMath::Equal(j, range[i].second, 0.00001); j += step)
+		{
+			//std::cout << Limit(functions[i], j) << ' ' << functions[i](j) << '\n';
+			max = std::max(std::abs(Limit(functions[i], j) - functions[i](j)), max);
+		}
+
+		std::cout << "Max error for " << names[i] << " is: " << max << '\n';
+	}
+
+	std::cout << "sin(x) / x, x -> 0 test\n";
+
+	if (GMath::Equal(Limit([](double x) -> double { return std::sin(x) / x; }, 0.0), 1.0, 0.000001))
+		std::cout << "Test OK\n";
+	else
+		std::cout << "Test NOT OK\n";
+}
+
+void testZadaca3()
+{
+	generalTest();
+	polyTest();
+	wTest();
+	argumentSizeTest();
+	sameXTest();
+	addPointTest();
+	addPointExcTest();
+	basicLimitTest();
 }
 
 int main()
 {
-	testZadaca2();
-
-	std::vector<std::pair<double, double>> data = { { 0.0, 0.0 }, { M_PI / 10.0, sin (M_PI / 10.0) } };
-	PolynomialInterpolator poly = PolynomialInterpolator(data);
-
-	for (double i = M_PI / 5.0; i < 2 * M_PI; i += M_PI / 10.0)
-		poly.AddPoint({ i, sin(i) });
-
-	std::cout << "AddPoint: " << poly(M_PI / 3) << "\n\n";
-
-	data.clear();
-	for (double i = 0.0; i < 2 * M_PI; i += M_PI / 10.0)
-		data.emplace_back(i, sin(i));
-	PolynomialInterpolator poly2 = PolynomialInterpolator(data);
-	
-	std::cout << "\n\n" << poly2(M_PI / 3) << ' ' << sin (M_PI / 3.0) << '\n';
+	testZadaca3();
 
 	char c = getchar();
 	return 0;

@@ -43,9 +43,6 @@ double LinearInterpolator::operator()(double x) const
 															 data.end(), 
 															 GMath::Point2D(helpX, 0)));
 
-	cache = std::min((int)data.size() - 2, cache);
-	cache = std::max(cache, 0);
-
 	return calc(cache, x);
 }
 

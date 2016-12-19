@@ -3,10 +3,8 @@
 class GMath
 {
 	static const double GEPS;
-
-public:
 	static const double INF;
-
+public:
 	typedef std::pair<double, double> Point2D;
 
 	static bool Equal(double x, double y, double Eps = GEPS);

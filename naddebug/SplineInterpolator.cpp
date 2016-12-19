@@ -31,9 +31,6 @@ double SplineInterpolator::operator()(double xx) const
 			x.end(),
 			helpX));
 
-	cache = std::min((int)x.size() - 2, cache);
-	cache = std::max(0, cache);
-
 	double t = xx - x[cache];
 	return y[cache] + t * (q[cache] + t * (r[cache] + s[cache] * t));
 }
@@ -47,7 +44,6 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 		x.push_back(elem.first);
 		y.push_back(elem.second);
 	}
-
 	SameXCheck(data);
 	
 	r.resize(data.size(), 0);
@@ -71,7 +67,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 
 	r[n - 2] /= s[n - 2];
 
-	for (int i = n - 3; i > 0; i--)
+	for (int i = n - 3; i > 2; i--)
 		r[i] = (r[i] - (x[i] - x[i - 1]) * r[i + 1]) / s[i];
 
 	for (int i = 0; i < n - 1; i++)

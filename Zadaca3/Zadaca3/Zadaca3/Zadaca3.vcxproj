@@ -154,6 +154,7 @@
     <ClCompile Include="PolynomialInterpolator.cpp" />
     <ClCompile Include="QRDecomposer.cpp" />
     <ClCompile Include="SplineInterpolator.cpp" />
+    <ClCompile Include="TestUtil.cpp" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="PolynomialInterpolator.h" />
     <ClInclude Include="QRDecomposer.h" />
     <ClInclude Include="SplineInterpolator.h" />
+    <ClInclude Include="TestUtil.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>

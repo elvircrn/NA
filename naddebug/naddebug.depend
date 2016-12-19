@@ -1,0 +1,139 @@
+# depslib dependency file v1.0
+1482111471 source:c:\users\elvircrn\documents\codes2\na\naddebug\barycentricinterpolator.cpp
+	"BarycentricInterpolator.h"
+	<algorithm>
+	<exception>
+	<stdexcept>
+
+1481680983 c:\users\elvircrn\documents\codes2\na\naddebug\barycentricinterpolator.h
+	<vector>
+	"GMath.h"
+
+1481729584 c:\users\elvircrn\documents\codes2\na\naddebug\gmath.h
+	<utility>
+
+1482111480 source:c:\users\elvircrn\documents\codes2\na\naddebug\gmath.cpp
+	"GMath.h"
+	<limits>
+	<cmath>
+
+1481932865 source:c:\users\elvircrn\documents\codes2\na\naddebug\linearinterpolator.cpp
+	"LinearInterpolator.h"
+	"GMath.h"
+	<utility>
+	<algorithm>
+	<stdexcept>
+	<iterator>
+
+1481420146 c:\users\elvircrn\documents\codes2\na\naddebug\linearinterpolator.h
+	<vector>
+	<utility>
+	"GMath.h"
+
+1481682070 source:c:\users\elvircrn\documents\codes2\na\naddebug\ludecomposer.cpp
+	"LUDecomposer.h"
+
+1479843438 c:\users\elvircrn\documents\codes2\na\naddebug\ludecomposer.h
+	"Matrix.h"
+	"Vector.h"
+
+1479849979 c:\users\elvircrn\documents\codes2\na\naddebug\matrix.h
+	<cmath>
+	"Vector.h"
+
+1482111510 c:\users\elvircrn\documents\codes2\na\naddebug\vector.h
+	<cmath>
+	<vector>
+	<functional>
+	<numeric>
+	<type_traits>
+	<numeric>
+	<limits>
+
+1482112948 source:c:\users\elvircrn\documents\codes2\na\naddebug\main.cpp
+	<iostream>
+	<cstdio>
+	<cstdlib>
+	<string>
+	<cstring>
+	<functional>
+	<vector>
+	<math.h>
+	"QRDecomposer.h"
+	"LUDecomposer.h"
+	"Matrix.h"
+	"Vector.h"
+	"PolynomialInterpolator.h"
+	"LinearInterpolator.h"
+	"TestUtil.h"
+
+1479847547 c:\users\elvircrn\documents\codes2\na\naddebug\qrdecomposer.h
+	"Vector.h"
+	"Matrix.h"
+
+1482100754 c:\users\elvircrn\documents\codes2\na\naddebug\polynomialinterpolator.h
+	<vector>
+	<utility>
+	"GMath.h"
+
+1482112905 c:\users\elvircrn\documents\codes2\na\naddebug\testutil.h
+	<iostream>
+	<vector>
+	<functional>
+	<algorithm>
+	<cmath>
+	"GMath.h"
+	"LinearInterpolator.h"
+
+1479849697 source:c:\users\elvircrn\documents\codes2\na\naddebug\matrix.cpp
+	<iostream>
+	<iomanip>
+	<cstdio>
+	<vector>
+	"Matrix.h"
+
+1482111641 source:c:\users\elvircrn\documents\codes2\na\naddebug\polynomialinterpolator.cpp
+	"PolynomialInterpolator.h"
+	<iostream>
+	<algorithm>
+	<iomanip>
+	<stdexcept>
+	"GMath.h"
+
+1479849193 source:c:\users\elvircrn\documents\codes2\na\naddebug\qrdecomposer.cpp
+	"QRDecomposer.h"
+	<cmath>
+	<cstdlib>
+	<algorithm>
+
+1481694112 source:c:\users\elvircrn\documents\codes2\na\naddebug\splineinterpolator.cpp
+	"SplineInterpolator.h"
+	<functional>
+	<algorithm>
+
+1481681866 c:\users\elvircrn\documents\codes2\na\naddebug\splineinterpolator.h
+	<vector>
+	<utility>
+	"GMath.h"
+
+1479468434 source:c:\users\elvircrn\documents\codes2\na\naddebug\test.cpp
+	<iostream>
+	<cstdio>
+	<cstdlib>
+	<string>
+	<cstring>
+	<functional>
+	<vector>
+
+1482112838 source:c:\users\elvircrn\documents\codes2\na\naddebug\testutil.cpp
+	"TestUtil.h"
+	<iostream>
+	<iomanip>
+	<cmath>
+	<algorithm>
+
+1482112019 source:c:\users\elvircrn\documents\codes2\na\naddebug\vector.cpp
+	<iostream>
+	<cstdio>
+	"Vector.h"
+
