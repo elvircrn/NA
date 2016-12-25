@@ -32,6 +32,26 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="BarycentricInterpolator.cpp" />
+		<Unit filename="BarycentricInterpolator.h" />
+		<Unit filename="GMath.cpp" />
+		<Unit filename="GMath.h" />
+		<Unit filename="LUDecomposer.cpp" />
+		<Unit filename="LUDecomposer.h" />
+		<Unit filename="LinearInterpolator.cpp" />
+		<Unit filename="LinearInterpolator.h" />
+		<Unit filename="Matrix.cpp" />
+		<Unit filename="Matrix.h" />
+		<Unit filename="PolynomialInterpolator.cpp" />
+		<Unit filename="PolynomialInterpolator.h" />
+		<Unit filename="QRDecomposer.cpp" />
+		<Unit filename="QRDecomposer.h" />
+		<Unit filename="SplineInterpolator.cpp" />
+		<Unit filename="SplineInterpolator.h" />
+		<Unit filename="TestUtil.cpp" />
+		<Unit filename="TestUtil.h" />
+		<Unit filename="Vector.cpp" />
+		<Unit filename="Vector.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

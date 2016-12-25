@@ -19,6 +19,7 @@ void LinearInterpolator::DataSizeCheck() const
 		throw std::domain_error("Invalid data set");
 }
 
+#include <iostream>
 double LinearInterpolator::calc(int ind, double x) const
 {
 	return ((data[ind + 1].first - x) / (data[ind + 1].first - data[ind].first)) * data[ind].second +
@@ -41,7 +42,7 @@ double LinearInterpolator::operator()(double x) const
 	if (!GMath::ContainsX(data[cache], data[cache + 1], helpX))
 		cache = std::distance(data.begin(), std::lower_bound(data.begin(), 
 															 data.end(), 
-															 GMath::Point2D(helpX, 0)));
+															 GMath::Point2D(helpX, 0))) - 1;
 
 	cache = std::min((int)data.size() - 2, cache);
 	cache = std::max(cache, 0);

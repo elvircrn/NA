@@ -275,7 +275,7 @@ bool exc_test5()
 {
 	Matrix singular = { { 1, 2, 3, 4 },{ 5, 6, 7, 8 },{ 9, 10, 11, 12 },{ 13, 14, 15, 16 } };
 	Matrix b = { { 1, 2, 3, 4 }, { 3, 3, 3, 3 }, {2, 2, 2, 2}, {8, 1, 2, 4 } };
-	
+
 	try
 	{
 		b / singular;
@@ -531,7 +531,7 @@ bool exc_test21()
 	Matrix z = { { 1,-19,122,2 },{ 1,50,-2,6 },{ 130,7,8,1 },{ -12,500,7,221 },{ 1, 2, 1, 1 } };
 	QRDecomposer qr(z);
 
-	Vector x { 1, 2 };
+	Vector x{ 1, 2 };
 
 	try
 	{
@@ -625,11 +625,212 @@ void runExcTests()
 
 void test()
 {
+	/*
 	initTests();
 	initExcTests();
 	runTests();
 	putchar('\n');
 	runExcTests();
+	*/
+	/*
+		Matrix m
+		{
+			{ 0.4 - 1, 0.1, 0.3, 1.0 },
+			{ 0.5 - 1, 0.05, 0.25, 1.0 },
+			{ 0.05 - 1, 0.45, 0.15, 1.0 },
+			{ 0.4 - 1, 0.1, 0.3, 1.0 }
+		};*/
+
+		//Matrix m
+		//{
+		//	{ 0.4 - 1, 0.5, 0.05, 0.4 },
+		//	{ 0.1, 0.05 - 1, 0.45, 0.1 },
+		//	{ 0.3, 0.25, 0.15 - 1, 0.3 },
+		//	{ 1.0, 1.0, 1.0, 1.0 }
+		//};
+
+		//QRDecomposer qr(m);
+		//Vector v({ 0, 0, 0, 1 });
+
+		//v = qr.Solve(v);
+
+		//std::cout << '\n';
+
+		//for (int i = 0; i < 4; i++, std::cout << "\\\\\n")
+		//{
+		//	std::cout << v[i] << " &= ";
+		//	for (int j = 0; j < 4; j++)
+		//		std::cout << m[i][j] << " p(S_" << char('a' + i) << ") ";
+		//}
+
+		//for (int i = 0; i < 4; i++)
+		//	std::cout << "p(S_" << char('a' + i) << ") &= " << v[i] << '\n';
+
+		//Matrix og
+		//{
+		//	{ 0.4, 0.1, 0.3, 1.0 },
+		//	{ 0.5, 0.05, 0.25, 1.0 },
+		//	{ 0.05, 0.45, 0.15, 1.0 },
+		//	{ 0.4, 0.1, 0.3, 1.0 }
+		//};
+
+		//std::vector<double> H(4, 0.0);
+
+		//std::cout << '\n';
+
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	for (int j = 0; j < 4; j++)
+		//		H[i] += og[i][j] * std::log2(og[i][j]);
+		//	H[i] *= -1.0;
+
+		//	std::cout << "H(S_" << i + 1 << ") &= " << H[i] << "\\\\\n";
+		//}
+
+		//double hinf = 0.0;
+		//for (int i = 0; i < 4; i++)
+		//	hinf += v[i] * H[i];
+
+		//std::cout << "hinf = " << hinf << '\n';
+
+		//std::cout << "p(adbbdb) = " << v[0] * og[0][3] * og[3][1] * og[1][1] * og[1][3] * og[3][1] << '\n';
+		//	
+		//double H1 = 0.0, H4 = 0.0;
+		//for (int i = 0; i < 4; i++)
+		//	H1 += v[i] * std::log2(v[i]);
+
+		//H1 *= -1.0;
+		//std::cout << "H1 = " << H1 << '\n';
+
+		//H4 = H1 + 3 * hinf;
+
+		//std::cout << "H4 = " << H4 << '\n';
+	/*
+		Matrix m
+		{
+			{ 0.2 - 1.0, 0.0, 0.3, 0.0 },
+			{ 0.8, 0.0 - 1.0, 0.7, 0.0 },
+			{ 0.0, 0.6, 0.0 - 1.0, 0.2 },
+			{ 1.0, 1.0, 1.0, 1.0 }
+		};
+
+		QRDecomposer qr(m);
+		Vector v({ 0, 0, 0, 1 });
+
+
+		std::cout << '\n';
+
+		for (int i = 0; i < 4; i++, std::cout << "\\\\\n")
+		{
+			std::cout << v[i] << " &= ";
+			for (int j = 0; j < 4; j++)
+				std::cout << m[i][j] << " p(S_{" << ((i & 2) > 0) << ((i & 1) > 0) << "}) + ";
+		}
+		v = qr.Solve(v);
+
+		for (int i = 0; i < 4; i++)
+			std::cout << "p(S_" << char('a' + i) << ") &= " << v[i] << '\n';
+
+		Matrix og
+		{
+			{ 0.2, 0.8, 0.0, 0.0 },
+			{ 0.0, 0.0, 0.6, 0.4 },
+			{ 0.3, 0.7, 0.0, 0.0 },
+			{ 0.0, 0.0, 0.2, 0.8 }
+		};
+
+		std::vector<double> H(4, 0.0);
+
+		std::cout << '\n';
+
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+				if (og[i][j] > std::numeric_limits<double>::epsilon())
+					H[i] += og[i][j] * std::log2(og[i][j]);
+			H[i] *= -1.0;
+
+			std::cout << "H(S_{" << ((i & 2) > 0) << ((i & 1) > 0) << "}" << ") &= " << H[i] << "\\\\\n";
+		}
+
+		double hinf = 0.0;
+		for (int i = 0; i < 4; i++)
+			hinf += v[i] * H[i];
+
+		std::cout << "hinf = " << hinf << '\n';
+
+		std::cout << "p(adbbdb) = " << v[0] * og[0][3] * og[3][1] * og[1][1] * og[1][3] * og[3][1] << '\n';
+
+		double H2 = 0.0, H7 = 0.0;
+		for (int i = 0; i < 4; i++)
+			H2 += v[i] * std::log2(v[i]);
+		H2 *= -1.0;
+
+		std::cout << "H1 = " << H2 << '\n';
+
+		H7 = H2 + 6 * hinf;
+
+		std::cout << "H7 = " << H7 << '\n';
+
+		std::cout << "red = " << (2 - hinf) / 2.0 << '\n';
+
+		std::string str = "1110110";
+
+		double pstr = v[3];*/
+
+
+
+	Matrix m
+	{
+		{ 0.4 - 1.0, 0.4, 0.3 },
+		{ 0.2, 0.2 - 1.0, 0.1 },
+		{ 1.0, 1.0, 1.0 }
+	};
+
+	QRDecomposer qr(m);
+	Vector v({ 0, 0, 1 });
+
+	std::cout << '\n';
+
+	for (int i = 0; i < 3; i++, std::cout << "\\\\\n")
+	{
+		std::cout << v[i] << " &= ";
+		for (int j = 0; j < 3; j++)
+			std::cout << m[i][j] << " p(S_{" << ((i & 2) > 0) << ((i & 1) > 0) << "}) + ";
+	}
+	v = qr.Solve(v);
+
+	for (int i = 0; i < 3; i++)
+		std::cout << "p(S_" << char('a' + i) << ") &= " << v[i] << '\n';
+
+	Matrix og
+	{
+		{ 0.4, 0.2, 0.4 },
+		{ 0.4, 0.2, 0.4 },
+		{ 0.3, 0.1, 0.6 }
+	};
+
+	std::vector<double> H(3, 0.0);
+
+	std::cout << '\n';
+
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+			if (og[i][j] > std::numeric_limits<double>::epsilon())
+				H[i] += og[i][j] * std::log2(og[i][j]);
+		H[i] *= -1.0;
+
+		std::cout << "H(S_{" << ((i & 2) > 0) << ((i & 1) > 0) << "}" << ") &= " << H[i] << "\\\\\n";
+	}
+
+	double hinf = 0.0;
+	for (int i = 0; i < 3; i++)
+		hinf += v[i] * H[i];
+
+	std::cout << "hinf = " << hinf << '\n';
+
+	//std::cout << "p(cbbbbcacbccabb) = " << v[0] * og[0][3] * og[3][1] * og[1][1] * og[1][3] * og[3][1] << '\n';
 }
 
 int main()

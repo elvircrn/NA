@@ -20,6 +20,16 @@
 
 #pragma region Zadaca2
 
+double runge(double x)
+{
+	return (1.0 / (1 + 25 * x * x));
+}
+
+double sigmoid(double x)
+{
+	return (1.0 / (1 + std::exp(-x)));
+}
+
 void generalTest()
 {
 	std::cout << "General tests\n";
@@ -67,11 +77,19 @@ double poly(double x)
 
 double poly(std::vector<double> coeffs, double x)
 {
-	double deg = 1.0, ret = 0.0;
+	double deg = 1.0, ret = 0.0, c = 0;
 
 	for (double a : coeffs)
 	{
-		ret += deg * a;
+		double elem = deg * a;
+		double y = elem - c;
+		double t = ret + y;
+		c = (t - ret) - y;
+		ret = t;
+
+
+
+		//ret += deg * a;
 		deg *= x;
 	}
 
@@ -98,6 +116,30 @@ void wTest()
 	PolynomialInterpolator polInter = TestUtil::TestInterp<PolynomialInterpolator>(sin, 0.0, 2 * M_PI, 20, 30);
 	std::vector<double> w = polInter.GetCoefficients();
 	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
+
+	polInter = TestUtil::TestInterp<PolynomialInterpolator>(cos, 0.0, 2 * M_PI, 20, 30);
+	w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
+
+	polInter = TestUtil::TestInterp<PolynomialInterpolator>(tan, 0.0, 2 * M_PI, 10, 30);
+	w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
+	polInter = TestUtil::TestInterp<PolynomialInterpolator>(runge, 0.0, 2 * M_PI, 10, 30);
+	w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
+
+	polInter = TestUtil::TestInterp<PolynomialInterpolator>(sqrt, 0.0, 2 * M_PI, 20, 30);
+	w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
+	polInter = TestUtil::TestInterp<PolynomialInterpolator>(sigmoid, 0.0, 2 * M_PI, 20, 30);
+	w = polInter.GetCoefficients();
+	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+
 }
 
 void argumentSizeTest()
@@ -288,6 +330,21 @@ void basicLimitTest()
 
 void testZadaca3()
 {
+	TestUtil::TestInterp<SplineInterpolator>(sin, 0, 2 * M_PI, 10, 100, true, true);
+	getchar();
+
+	SplineInterpolator spl1({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
+	for (int i = 1; i < 6; i++)
+		std::cout << i << " " << spl1(i) << std::endl;
+		getchar();
+
+
+	SplineInterpolator spl({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
+	std::cout << spl(2) << std::endl;
+	std::cout << spl(2.7) << std::endl;
+	std::getchar();
+
+
 	generalTest();
 	polyTest();
 	wTest();
@@ -300,6 +357,24 @@ void testZadaca3()
 
 int main()
 {
+	/*
+	PolynomialInterpolator pol({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
+	std::vector <double> v = pol.GetCoefficients();
+	for (auto x : v) std::cout << x << std::endl;
+	getchar();
+
+
+	getchar();
+	PolynomialInterpolator _pol({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
+	std::cout << _pol(2.7) << '\n';
+	std::cout << _pol(2) << '\n';
+
+	getchar();
+	LinearInterpolator lin({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
+	std::cout << lin(2.7);
+	getchar();
+	*/
+
 	testZadaca3();
 
 	char c = getchar();
