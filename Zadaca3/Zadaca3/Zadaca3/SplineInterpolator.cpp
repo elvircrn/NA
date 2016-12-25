@@ -30,7 +30,7 @@ double SplineInterpolator::operator()(double xx) const
 	if (!GMath::Contains(x[cache], x[cache + 1], helpX))
 		cache = std::distance(x.begin(), std::lower_bound(x.begin(),
 			x.end(),
-			helpX));
+			helpX)) - 1;
 
 	cache = std::min((int)x.size() - 2, cache);
 	cache = std::max(0, cache);
