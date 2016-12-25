@@ -23,7 +23,7 @@ bool GMath::ContainsX(const Point2D & a, const Point2D & b, double x)
 
 bool GMath::Contains(double x1, double x2, double x)
 {
-	return (x1 < x && x < x2);
+	return (x1 < x && x < x2) || GMath::Equal(x1, x) || GMath::Equal(x2, x);
 }
 
 bool GMath::IsZero(double x, double Eps)

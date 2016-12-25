@@ -21,7 +21,6 @@ int SplineInterpolator::GetSize() const
 	return x.size();
 }
 
-#include <iostream>
 double SplineInterpolator::operator()(double xx) const
 {
 	double helpX = (xx < x[0]) ? ((x[0] + x[1]) / 2.0) : xx;
@@ -57,7 +56,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 
 	int n = GetSize();
 
-	for (int i = 1; i < n - 2; i++)
+	for (int i = 1; i < n - 1; i++)
 	{
 		s[i] = 2 * (x[i + 1] - x[i - 1]);
 		r[i] = 3 * ((y[i + 1] - y[i]) / (x[i + 1] - x[i]) - (y[i] - y[i - 1] / (x[i] - x[i - 1])));
@@ -72,7 +71,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 
 	r[n - 2] /= s[n - 2];
 
-	for (int i = n - 3; i > 0; i--)
+	for (int i = n - 2; i > 0; i--)
 		r[i] = (r[i] - (x[i] - x[i - 1]) * r[i + 1]) / s[i];
 
 	for (int i = 0; i < n - 1; i++)
