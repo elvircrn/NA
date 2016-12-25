@@ -17,6 +17,7 @@
 #include "LinearInterpolator.h"
 #include "TestUtil.h"
 #include "SplineInterpolator.h"
+#include "BarycentricInterpolator.h"
 
 #pragma region Zadaca2
 
@@ -45,7 +46,6 @@ void generalTest()
 		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
 	};
 
-
 	int seedSize = 50, sampleSize = 30;
 
 	for (int i = 0; i < names.size(); i++)
@@ -59,6 +59,9 @@ void generalTest()
 
 		std::cout << "Splyne:\n";
 		TestUtil::TestInterp<SplineInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
+
+		std::cout << "Barycentric:\n";
+		TestUtil::TestBarInterp(functions[i], range[i].first, range[i].second, seedSize, sampleSize, 4, true, false);
 	}
 }
 
@@ -96,7 +99,6 @@ double poly(std::vector<double> coeffs, double x)
 	return ret;
 }
 
-// Needs work
 void polyTest()
 {
 	std::cout << "\n\PolyInterp on a polynomial test\n";
@@ -208,18 +210,6 @@ void sameXTest()
 	}
 }
 
-//void linInterpOutOfBoundsTest()
-//{
-//	std::cout << "\n\nPasses if all values are the same\n";
-//	bool ok = true;
-//
-//	auto li = TestUtil::GetInterp<LinearInterpolator>(sin, 0, 2 * M_PI, 20);
-//
-//	std::vector<double> res;
-//
-//	for (int i = 0 )
-//}
-
 void addPointTest()
 {
 	std::cout << "\n\nAddPoint test; Passes if values from 2 instances of LinearInterpolation class are the same.\n";
@@ -328,23 +318,18 @@ void basicLimitTest()
 		std::cout << "Test NOT OK\n";
 }
 
+double invsin(double x)
+{
+	return std::sin(1 / x);
+}
+
+double xinvsin(double x)
+{
+	return x * invsin(x);
+}
+
 void testZadaca3()
 {
-	TestUtil::TestInterp<SplineInterpolator>(sin, 0, 2 * M_PI, 10, 100, true, true);
-	getchar();
-
-	SplineInterpolator spl1({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
-	for (int i = 1; i < 6; i++)
-		std::cout << i << " " << spl1(i) << std::endl;
-		getchar();
-
-
-	SplineInterpolator spl({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
-	std::cout << spl(2) << std::endl;
-	std::cout << spl(2.7) << std::endl;
-	std::getchar();
-
-
 	generalTest();
 	polyTest();
 	wTest();

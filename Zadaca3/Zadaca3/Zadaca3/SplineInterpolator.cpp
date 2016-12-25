@@ -56,7 +56,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 
 	int n = GetSize();
 
-	for (int i = 1; i < n - 1; i++)
+	for (int i = 1; i <= n - 2; i++)
 	{
 		s[i] = 2 * (x[i + 1] - x[i - 1]);
 		r[i] = 3 * ((y[i + 1] - y[i]) / (x[i + 1] - x[i]) - (y[i] - y[i - 1] / (x[i] - x[i - 1])));

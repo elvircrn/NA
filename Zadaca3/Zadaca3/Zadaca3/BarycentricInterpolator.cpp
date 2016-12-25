@@ -30,21 +30,21 @@ BarycentricInterpolator::BarycentricInterpolator(std::vector<GMath::Point2D> _da
 {
 	DataSizeCheck();
 	OrderCheck(order);
-	//sort(data.begin(), data.end(), [](const GMath::Point2D &a, const GMath::Point2D &b) -> bool{ return a.first < b.first; });
+	sort(data.begin(), data.end(), [](const GMath::Point2D &a, const GMath::Point2D &b) -> bool{ return a.first < b.first; });
 	SameXCheck();
 
 	w.resize(data.size());
 
 	for (int i = 1; i <= (int)data.size(); i++)
 	{
-		double p;
+		double p = 1.0;
 		w[i - 1] = 0.0;
 		for (int k = std::max(1, i - order); k <= std::min(i, (int)data.size() - order); k++)
 		{
 			p = 1.0;
 			for (int j = k; j <= k + order; j++)
 				if (i != j)
-					p /= (data[i].first - data[j].first);
+					p /= (data[i - 1].first - data[j - 1].first);
 			p = (k % 2) ? p : -p;
 		}
 		w[i - 1] += p;
