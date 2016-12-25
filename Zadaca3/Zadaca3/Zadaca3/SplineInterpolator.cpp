@@ -49,7 +49,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 	}
 
 	SameXCheck(data);
-	
+
 	r.resize(data.size(), 0);
 	s.resize(data.size(), 0);
 	q.resize(data.size(), 0);
@@ -62,7 +62,7 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 		r[i] = 3 * ((y[i + 1] - y[i]) / (x[i + 1] - x[i]) - (y[i] - y[i - 1] / (x[i] - x[i - 1])));
 	}
 
-	for (int i = 1; i < n - 2; i++)
+	for (int i = 1; i < n - 1; i++)
 	{
 		double mi = (x[i] - x[i - 1]) / s[i];
 		s[i + 1] -= mi * (x[i] - x[i - 1]);
@@ -71,13 +71,14 @@ SplineInterpolator::SplineInterpolator(std::vector<GMath::Point2D> data) : cache
 
 	r[n - 2] /= s[n - 2];
 
-	for (int i = n - 2; i > 0; i--)
+	for (int i = n - 3; i > 0; i--)
 		r[i] = (r[i] - (x[i] - x[i - 1]) * r[i + 1]) / s[i];
 
 	for (int i = 0; i < n - 1; i++)
 	{
 		double dx = x[i + 1] - x[i];
 		s[i] = (r[i + 1] - r[i]) / (3 * dx);
-		q[i] = (y[i + 1] - y[i]) / dx - dx * (r[i + 1] + 2 * r[i]);
+		q[i] = (y[i + 1] - y[i]) / dx - dx * (r[i + 1] + 2 * r[i]) / 3;
 	}
+
 }
