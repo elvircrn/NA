@@ -340,10 +340,6 @@ void testZadaca3()
 	basicLimitTest();
 }
 
-template <typename FunTip>
-double RombergIntegration(FunTip f, double a, double b, double eps = 1e-8,
-	int nmax = 1000000, int nmin = 50);
-
 int main()
 {
 	/*

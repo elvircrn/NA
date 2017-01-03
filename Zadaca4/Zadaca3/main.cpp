@@ -89,10 +89,6 @@ double poly(std::vector<double> coeffs, double x)
 		double t = ret + y;
 		c = (t - ret) - y;
 		ret = t;
-
-
-
-		//ret += deg * a;
 		deg *= x;
 	}
 
@@ -344,6 +340,15 @@ template <typename FunTip>
 double RombergIntegration(FunTip f, double a, double b, double eps = 1e-8,
 	int nmax = 1000000, int nmin = 50);
 
+template <typename FunTip>
+double AdaptiveIntegration(FunTip f, double a, double b, double eps = 1e-10,
+	int maxdepth = 30, int nmin = 1);
+
+
+template <typename FunTip>
+double AdaptiveAux(FunTip f, double a, double b, double eps, 
+	double f1, double f2, double f3, int r);
+
 int main()
 {
 	/*
@@ -392,3 +397,67 @@ double Limit(FunTip f, double x0, double eps, double nmax)
 	}
 	return y[0];
 }
+
+template<typename FunTip>
+double RombergIntegration(FunTip f, double a, double b, double eps, int nmax, int nmin)
+{
+	int n = 2;
+	double h = (b - a) / n;
+	double s = (f(a) + f(b)) / 2.0;
+	double iold = s;
+	std::vector<double> a(nmax + 1);
+	for (int i = 1; i <= nmax; i++)
+	{
+		for (int j = 1; j <= n / 2; j++)
+			s += f(a + (2 * j - 1) * h);
+		a[i] = h * s;
+		p = 4;
+		for (int k = i - 1; k >= 1; k--)
+		{
+			a[k] = (p * a[k + 1] - a[k]) / (p - 1);
+			p *= 4;
+		}
+
+		if (GMath::Equal(a[i] - iold))
+			return a[1];
+
+		iold = a[1];
+		h /= 2;
+		n *= 2;
+	}
+
+	throw "Tacnost nije postignuta"; // TODO: Provjeri koji exception treba da se baca
+}
+
+template<typename FunTip>
+double AdaptiveIntegration(FunTip f, double a, double b, double eps, int maxdepth, int nmin)
+{
+	double s = 0;
+	double h = (b - a) / nmin;
+	for (int i = 1; i <= nmin; i++)
+	{
+		s += AdaptiveAux(f, a, a + h, eps, f(a), f(a + h), f(a + h / 2), maxdepth);
+		a += h;
+	}
+	return s;
+}
+
+template<typename FunTip>
+double AdaptiveAux(FunTip f, double a, double b, double eps, 
+	double f1, double f2, double f3, int r)
+{
+	double c = (a + b) / 2.0;
+	double i1 = (b - a) * (f1 + 4 * f3 + f2) / 6;
+	double f4 = f((a + c) / 2.0);
+	double f5 = f((c + b) / 2.0);
+
+	double i2 = (b - a) * (f1 + 4 * f3 + f2) / 12;
+
+	if (r <= 0 || std::abs(i1 - i2) < eps)
+		return i2;
+
+	return AdaptiveAux(f, a, c, eps, f1, f3, f4, r - 1) +
+		AdaptiveAux(f, c, b, eps, f3, f2, f5, r - 1);
+}
+
+
