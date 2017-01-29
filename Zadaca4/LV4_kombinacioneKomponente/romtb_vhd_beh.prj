@@ -1,0 +1,2 @@
+vhdl work "rom.vhd"
+vhdl work "romtb.vhd"

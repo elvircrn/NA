@@ -18,56 +18,24 @@
 #include "TestUtil.h"
 #include "SplineInterpolator.h"
 #include "BarycentricInterpolator.h"
+#include "main.h"
 
 #pragma region Zadaca2
 
-double runge(double x)
-{
-	return (1.0 / (1 + 25 * x * x));
-}
+template <typename FunTip>
+double RombergIntegration(FunTip f, double a, double b, double eps = 1e-8,
+	int nmax = 1000000, int nmin = 50);
 
-double sigmoid(double x)
-{
-	return (1.0 / (1 + std::exp(-x)));
-}
+template <typename FunTip>
+double AdaptiveIntegration(FunTip f, double a, double b, double eps = 1e-10,
+	int maxdepth = 30, int nmin = 1);
 
-void generalTest()
-{
-	std::cout << "General tests\n";
-	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI }, { 0, 2 * M_PI }, { -0.5, 0.5 }, { -0.5, 0.5 }, { -10, 10 }, { -3, 3 } };
-	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
-
-	std::vector<double(*)(double)> functions = {
-		sin,
-		cos,
-		acos,
-		atan,
-		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
-		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
-	};
-
-	int seedSize = 50, sampleSize = 30;
-
-	for (int i = 0; i < names.size(); i++)
-	{
-		std::cout << "\n\nAnalysis of " + names[i] << '\n';
-		std::cout << "Linear:\n";
-		TestUtil::TestInterp<LinearInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
-
-		std::cout << "Polynomial:\n";
-		TestUtil::TestInterp<PolynomialInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
-
-		std::cout << "Splyne:\n";
-		TestUtil::TestInterp<SplineInterpolator>(functions[i], range[i].first, range[i].second, seedSize, sampleSize, true);
-
-		std::cout << "Barycentric:\n";
-		TestUtil::TestBarInterp(functions[i], range[i].first, range[i].second, seedSize, sampleSize, 4, true, false);
-	}
-}
+template <typename FunTip>
+double AdaptiveAux(FunTip f, double a, double b, double eps,
+	double f1, double f2, double f3, int r);
 
 double poly(double x)
 {
-	std::cout << "Poly tests\n";
 	std::vector<double> a = { -8, -6, 3, 1.0 };
 	double ret = 0, deg = 1.0;
 	for (int i = 0; i < a.size(); i++)
@@ -95,307 +63,274 @@ double poly(std::vector<double> coeffs, double x)
 	return ret;
 }
 
-void polyTest()
+/* test functions */
+double invsin(double x) { return std::sin(1 / x); }
+
+double xinvsin(double x) { return x * invsin(x); }
+
+double Sin(double x) { return std::sin(x); }
+
+double Root(double x) { return std::sqrt(x); }
+
+double RombergPoly(double x) { return poly({ 0, 1, 5, -2 }, x); }
+
+double XSin(double x) { return x * std::sin(x); }
+
+double runge(double x) { return (1.0 / (1 + 25 * x * x)); }
+
+double sigmoid(double x) { return (1.0 / (1 + std::exp(-x))); }
+
+/* derivatives */
+double dinvsin(double x) { return -cos(1 / x) / (x * x); }
+
+double dxinvsin(double x) { return invsin(x) + dinvsin(x); }
+
+double dSin(double x) { return std::cos(x); }
+
+double dRoot(double x) { return 1 / 2 * std::sqrt(x); }
+
+double dXSin(double x) { return std::sin(x) + x * std::cos(x); }
+
+double drunge(double x) { return -(50 * x) / (25 * x * x + 1) * (25 * x * x + 1); }
+
+double dsigmoid(double x) { return (1.0 / (1 + std::exp(-x))); }
+
+
+/* integrals */
+double iSin(double x) { return -std::cos(x); }
+
+double iXSin(double x) { return std::sin(x) + x * std::cos(x); }
+
+
+bool TestRomberg()
 {
-	std::cout << "\n\PolyInterp on a polynomial test\n";
-	PolynomialInterpolator pol({ { -5, poly(-5) }, { 2, poly(2) }, { 4, poly(4) } });
-	//PolynomialInterpolator pol({ { -4, 0 }, { -1, 0 }, { 2, 0 } });
+	double sinpi = RombergIntegration(Sin, 0, M_PI);
+	double sigmoid2pi = RombergIntegration(sigmoid, 0, 2 * M_PI);
+	double root = RombergIntegration(Root, 1, 4);
+	double poly = RombergIntegration(RombergPoly, -100, 100);
 
-	std::vector<double> coeffs = pol.GetCoefficients();
-
-	for (double x : coeffs)
-		std::cout << x << ' ';
-	std::cout << '\n';
+	return GMath::Equal(sinpi, 2, 0.001) &&
+		GMath::Equal(sigmoid2pi, 5.5919, 0.001) &&
+		GMath::Equal(root, 4.6667, 0.001) &&
+		GMath::Equal(poly, 3333333, 0.001);
 }
 
-void wTest()
+bool TestAdaptive()
 {
-	std::cout << "\n\nGetCoefficients() test; Passes if both values are the same.\n";
-	PolynomialInterpolator polInter = TestUtil::TestInterp<PolynomialInterpolator>(sin, 0.0, 2 * M_PI, 20, 30);
-	std::vector<double> w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
+	double sinpi = AdaptiveIntegration(Sin, 0, M_PI);
+	double sigmoid2pi = AdaptiveIntegration(sigmoid, 0, 2 * M_PI);
+	double root = AdaptiveIntegration(Root, 1, 4);
+	double poly = AdaptiveIntegration(RombergPoly, -100, 100);
+	double xsin = AdaptiveIntegration(XSin, -5, 5);
 
-
-	polInter = TestUtil::TestInterp<PolynomialInterpolator>(cos, 0.0, 2 * M_PI, 20, 30);
-	w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
-
-
-	polInter = TestUtil::TestInterp<PolynomialInterpolator>(tan, 0.0, 2 * M_PI, 10, 30);
-	w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
-
-	polInter = TestUtil::TestInterp<PolynomialInterpolator>(runge, 0.0, 2 * M_PI, 10, 30);
-	w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
-
-
-	polInter = TestUtil::TestInterp<PolynomialInterpolator>(sqrt, 0.0, 2 * M_PI, 20, 30);
-	w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
-
-	polInter = TestUtil::TestInterp<PolynomialInterpolator>(sigmoid, 0.0, 2 * M_PI, 20, 30);
-	w = polInter.GetCoefficients();
-	std::cout << polInter(4 * M_PI / 3.0) << ' ' << poly(w, 4 * M_PI / 3.0) << '\n';
-
+	return GMath::Equal(sinpi, 2, 0.001) &&
+		GMath::Equal(sigmoid2pi, 5.5919, 0.001) &&
+		GMath::Equal(root, 4.6667, 0.001) &&
+		GMath::Equal(poly, 3333333, 0.001) &&
+		GMath::Equal(xsin, -4.7545, 0.001);
 }
 
-void argumentSizeTest()
+bool TestIntChebyshev()
 {
-	std::cout << "\n\nNot enough points passed; Passes if 3 exceptions are thrown.\n";
-
-	std::vector<GMath::Point2D> v = { { 0.0, 0.0 } };
-
-	try
-	{
-		auto l = LinearInterpolator(v);
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << '\n';
-	}
-
-	try
-	{
-		auto p = PolynomialInterpolator(v);
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << '\n';
-	}
-
-	try
-	{
-		auto s = SplineInterpolator(v);
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << '\n';
-	}
+	return true;
 }
 
-void sameXTest()
+bool TestBadM()
 {
-	std::cout << "\n\nSame x-coordinate test; Passes if 3 exceptions are thrown.\n";
-	std::vector<GMath::Point2D> v = { { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 } };
+	ChebyshevApproximation c = ChebyshevApproximation(Sin, -20, 20, 100);
 	try
 	{
-		auto l = LinearInterpolator(v);
+		c.set_m(-123);
 	}
-	catch (std::exception e)
+	catch(std::domain_error d)
 	{
-		std::cout << e.what() << '\n';
+		std::string str = d.what();
+		return (str == "Bad order");
 	}
-
-	try
-	{
-		auto p = PolynomialInterpolator(v);
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << '\n';
-	}
-
-	try
-	{
-		auto s = SplineInterpolator(v);
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << '\n';
-	}
+	return false;
 }
 
-void addPointTest()
+bool TestBadParams()
 {
-	std::cout << "\n\nAddPoint test; Passes if values from 2 instances of LinearInterpolation class are the same.\n";
-
-	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI }, { 0, 2 * M_PI }, { -0.5, 0.5 }, { -0.5, 0.5 }, { -10, 10 }, { -3, 3 } };
-	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
-	std::vector<double(*)(double)> functions = {
-		sin,
-		cos,
-		acos,
-		atan,
-		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
-		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
-	};
-
-	for (int i = 0; i < 5; i++)
-	{
-		std::vector<GMath::Point2D> data = TestUtil::LinSpace(functions[i], range[i].first, range[i].second, 20);
-		PolynomialInterpolator regular(data);
-
-		auto dataCpy = data;
-		data.resize(2);
-		
-		PolynomialInterpolator addInter(data);
-
-		for (int i = 2; i < dataCpy.size(); i++)
-			addInter.AddPoint(dataCpy[i]);
-		
-		std::cout << names[i] << " test: ";
-
-		bool ok = true;
-
-		for (int j = 0; j < addInter.GetCoefficients().size(); j++)
-			if (!GMath::Equal(addInter.GetCoefficients()[j], regular.GetCoefficients()[j]))
-				ok = false;
-
-		if (ok)
-			std::cout << "Test OK\n";
-		else
-			std::cout << "Not OK\n";
-	}
-}
-
-void addPointExcTest()
-{
-	std::cout << "\n\nAdd point test; Passes if exception is thrown\n";
 	bool ok = true;
 	try
 	{
-		PolynomialInterpolator pi = TestUtil::GetInterp<PolynomialInterpolator>(sin, 0, 2 * M_PI, 10);
-		pi.AddPoint({ 0.0, 0.0 });
-		ok = false;
+		ChebyshevApproximation c = ChebyshevApproximation(Sin, 20, -20, 100);
 	}
 	catch (std::domain_error d)
 	{
-		std::cout << d.what() << '\n';
+		std::string str = d.what();
+		ok &= (str == "Bad parameters");
 	}
 
-	if (ok)
-		std::cout << "Test OK\n";
-	else
-		std::cout << "Not OK\n";
-}
-
-template <typename FunTip>
-double Limit(FunTip f, double x0, double eps = 1e-8, double nmax = 20);
-
-void basicLimitTest()
-{
-	std::cout << "\n\nBasic limit test, passes if maximum error is 'relatively' small.\n";
-	std::vector<GMath::Point2D> range = { { 0, 2 * M_PI },{ 0, 2 * M_PI },{ -0.5, 0.5 },{ -0.5, 0.5 },{ -10, 10 },{ -3, 3 } };
-	std::vector<std::string> names = { "sin", "cos", "acos", "atan", "sigmoid", "runge" };
-	std::vector<double(*)(double)> functions = {
-		sin,
-		cos,
-		acos,
-		atan,
-		[](double x) -> double { return (1.0 / (1 + std::exp(-x))); },
-		[](double x) -> double { return (1.0 / (1 + 25 * x * x));  }
-	};
-	std::vector<int> testSizes = { 10, 10, 10, 10, 10, 10 };
-
-	int testSize = 10;
-
-	for (int i = 0; i < functions.size(); i++)
+	try
 	{
-		std::cout << names[i] << " test\n";
-		double max = 0.0;
-
-		double step = (range[i].second - range[i].first) / (testSizes[i] - 1);
-
-		for (double j = range[i].first; j < range[i].second || GMath::Equal(j, range[i].second, 0.00001); j += step)
-		{
-			//std::cout << Limit(functions[i], j) << ' ' << functions[i](j) << '\n';
-			max = std::max(std::abs(Limit(functions[i], j) - functions[i](j)), max);
-		}
-
-		std::cout << "Max error for " << names[i] << " is: " << max << '\n';
+		ChebyshevApproximation c = ChebyshevApproximation(Sin, 20, 20, 100);
+	}
+	catch (std::domain_error d)
+	{
+		std::string str = d.what();
+		ok &= (str == "Bad parameters");
 	}
 
-	std::cout << "sin(x) / x, x -> 0 test\n";
+	try
+	{
+		ChebyshevApproximation c = ChebyshevApproximation(Sin, -20, 20, -100);
+	}
+	catch (std::domain_error d)
+	{
+		std::string str = d.what();
+		ok &= (str == "Bad parameters");
+	}
 
-	if (GMath::Equal(Limit([](double x) -> double { return std::sin(x) / x; }, 0.0), 1.0, 0.000001))
-		std::cout << "Test OK\n";
+	return ok;
+}
+
+bool TestChebApprox()
+{
+	bool ok = true;
+	std::cout << "sin:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(Sin, 0, M_PI, 20, 10, true, true), 1e-12);
+	std::cout << "runge:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(runge, 0, M_PI, 200, 10, true, true), 1e-12);
+	std::cout << "sigmoid:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(sigmoid, 0, M_PI, 20, 10, true, true), 1e-12);
+	std::cout << "polynomial:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(poly, 0, M_PI, 20, 10, true, true), 1e-12);
+	std::cout << "xsinx:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(XSin, M_PI / 2, M_PI, 20, 10, true, true), 1e-12);
+	std::cout << "xinvsin:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevInterp(xinvsin, M_PI / 2, M_PI, 20, 10, true, true), 1e-5);
+	return ok;
+}
+
+bool TestChebDerivative()
+{
+	bool ok = true;
+	std::cout << "derivative test:\n";
+	std::cout << "dsin:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevDerivative(Sin, dSin, 0, M_PI, 20, 10, true, true), 1e-10);
+	std::cout << "dxsinx:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevDerivative(XSin, dXSin, M_PI / 2, M_PI, 20, 10, true, true), 1e-10);
+
+	return ok;
+}
+
+bool TestChebDerivativeObj()
+{
+	bool ok = true;
+	std::cout << "derivative test:\n";
+	std::cout << "dsin:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevDerivativeObj(Sin, dSin, 0, M_PI, 20, 10, true, true), 1e-10);
+	std::cout << "dxsinx:\n";
+	ok &= GMath::IsZero(TestUtil::TestChebyshevDerivativeObj(XSin, dXSin, M_PI / 2, M_PI, 20, 10, true, true), 1e-10);
+	return ok;
+}
+
+bool TestChebInt()
+{
+	double sinpi = ChebyshevApproximation(Sin, 0, M_PI, 20).integrate();
+	double sigmoid2pi = ChebyshevApproximation(sigmoid, 0, 2 * M_PI, 20).integrate();
+	double root = ChebyshevApproximation(Root, 1, 4, 20).integrate();
+	double poly = ChebyshevApproximation(RombergPoly, -100, 100, 20).integrate();
+	double xsin = ChebyshevApproximation(XSin, -5, 5, 20).integrate();
+
+	std::cout << sinpi << '\n';
+	std::cout << sigmoid2pi << '\n';
+	std::cout << root << '\n';
+	std::cout << poly << '\n';
+	std::cout << xsin << '\n';
+
+
+	return GMath::Equal(sinpi, 2, 0.001) &&
+		GMath::Equal(sigmoid2pi, 5.5919, 0.001) &&
+		GMath::Equal(root, 4.6667, 0.001) &&
+		GMath::Equal(poly, 3333333, 0.001) &&
+		GMath::Equal(xsin, -4.7545, 0.001);
+}
+
+bool TestChebIntObj()
+{
+	double sinpi = ChebyshevApproximation(Sin, 0, M_PI, 20).antiderivative()(M_PI) - ChebyshevApproximation(Sin, 0, M_PI, 20).antiderivative()(0);
+	double sigmoid2pi = ChebyshevApproximation(sigmoid, 0, 2 * M_PI, 20).antiderivative().integrate();
+	double root = ChebyshevApproximation(Root, 1, 4, 20).antiderivative().integrate();
+	double poly = ChebyshevApproximation(RombergPoly, -100, 100, 20).antiderivative().integrate();
+	double xsin = ChebyshevApproximation(XSin, -5, 5, 20).antiderivative().integrate();
+
+	std::cout << sinpi << '\n';
+	std::cout << sigmoid2pi << '\n';
+	std::cout << root << '\n';
+	std::cout << poly << '\n';
+	std::cout << xsin << '\n';
+
+	return GMath::Equal(sinpi, 2, 0.001) &&
+		GMath::Equal(sigmoid2pi, 5.5919, 0.001) &&
+		GMath::Equal(root, 4.6667, 0.001) &&
+		GMath::Equal(poly, 3333333, 0.001) &&
+		GMath::Equal(xsin, -4.7545, 0.001);
+}
+
+
+void testZadaca4()
+{
+	if (TestRomberg())
+		std::cout << "Romberg passed\n";
 	else
-		std::cout << "Test NOT OK\n";
+		std::cout << "Romberg failed\n";
+
+	if (TestAdaptive())
+		std::cout << "Adaptive passed\n";
+	else
+		std::cout << "Adaptived failed\n";
+
+	if (TestIntChebyshev())
+		std::cout << "Chebyshev basic integration passsed\n";
+	else
+		std::cout << "Chebyshev basic integration failed\n";
+
+	if (TestBadM())
+		std::cout << "Test bad m Chebyshev passed\n";
+	else
+		std::cout << "Test bad m Chebyshev failed\n";
+
+	if (TestBadParams())
+		std::cout << "Test bad constructor params passed\n";
+	else
+		std::cout << "Test bad constructor params failed\n";
+	
+	if (TestChebApprox())
+		std::cout << "Test Chebishev approx passed\n";
+	else
+		std::cout << "Test Chebishev approx failed\n";
+
+	if (TestChebDerivative())
+		std::cout << "Test Chebishev derivative passed\n";
+	else
+		std::cout << "Test Chebishev derivative failed\n";
+
+	if (TestChebDerivativeObj())
+		std::cout << "Test Chebishev derivative obj passed\n";
+	else
+		std::cout << "Test Chebishev derivative obj failed\n";
+
+	if (TestChebInt())
+		std::cout << "Test Chebishev integral passed\n";
+	else
+		std::cout << "Test Chebishev integral failed\n";
+
+	if (TestChebIntObj())
+		std::cout << "Test Chebishev integral obj passed\n";
+	else
+		std::cout << "Test Chebishev integral obj failed\n";
+
 }
-
-double invsin(double x)
-{
-	return std::sin(1 / x);
-}
-
-double xinvsin(double x)
-{
-	return x * invsin(x);
-}
-
-void testZadaca3()
-{
-	generalTest();
-	polyTest();
-	wTest();
-	argumentSizeTest();
-	sameXTest();
-	addPointTest();
-	addPointExcTest();
-	basicLimitTest();
-}
-
-template <typename FunTip>
-double RombergIntegration(FunTip f, double a, double b, double eps = 1e-8,
-	int nmax = 1000000, int nmin = 50);
-
-template <typename FunTip>
-double AdaptiveIntegration(FunTip f, double a, double b, double eps = 1e-10,
-	int maxdepth = 30, int nmin = 1);
-
-
-template <typename FunTip>
-double AdaptiveAux(FunTip f, double a, double b, double eps, 
-	double f1, double f2, double f3, int r);
 
 int main()
 {
-	/*
-	PolynomialInterpolator pol({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
-	std::vector <double> v = pol.GetCoefficients();
-	for (auto x : v) std::cout << x << std::endl;
-	getchar();
+	testZadaca4();
 
-
-	getchar();
-	PolynomialInterpolator _pol({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
-	std::cout << _pol(2.7) << '\n';
-	std::cout << _pol(2) << '\n';
-
-	getchar();
-	LinearInterpolator lin({ { 1, 2 },{ 2, 4 },{ 3, 2.5 },{ 4, 3 },{ 5, 1 } });
-	std::cout << lin(2.7);
-	getchar();
-	*/
-
-	testZadaca3();
-
-	char c = getchar();
+	std::getchar();
 	return 0;
-}
-
-template <typename FunTip>
-double Limit(FunTip f, double x0, double eps, double nmax)
-{
-	double yOld = GMath::INF;
-	std::vector<double> y(nmax);
-	double h = 1e-3 - 1e-2;
-	for (int i = 1; i <= nmax; i++)
-	{
-		y[i - 1] = f(x0 + h);
-		double p = 2.0;
-		for (int k = i - 1; k >= 1; k--)
-		{
-			y[k - 1] = (p * y[k] - y[k - 1]) / (p - 1.0);
-			p = 2 * p;
-		}
-		if (std::abs(y[0] - yOld) < eps)
-			return y[0];
-		yOld = y[0];
-		h /= 2.0;
-	}
-	return y[0];
 }
 
 template<typename FunTip>
@@ -405,28 +340,30 @@ double RombergIntegration(FunTip f, double a, double b, double eps, int nmax, in
 	double h = (b - a) / n;
 	double s = (f(a) + f(b)) / 2.0;
 	double iold = s;
-	std::vector<double> a(nmax + 1);
+	std::vector<double> I(nmax + 1);
 	for (int i = 1; i <= nmax; i++)
 	{
 		for (int j = 1; j <= n / 2; j++)
 			s += f(a + (2 * j - 1) * h);
-		a[i] = h * s;
-		p = 4;
+
+		I[i] = h * s;
+		int p = 4;
+
 		for (int k = i - 1; k >= 1; k--)
 		{
-			a[k] = (p * a[k + 1] - a[k]) / (p - 1);
+			I[k] = (p * I[k + 1] - I[k]) / (p - 1);
 			p *= 4;
 		}
 
-		if (GMath::Equal(a[i] - iold))
-			return a[1];
+		if (n >= nmin && GMath::IsZero(I[1] - iold))
+			return I[1];
 
-		iold = a[1];
+		iold = I[1];
 		h /= 2;
 		n *= 2;
 	}
 
-	throw "Tacnost nije postignuta"; // TODO: Provjeri koji exception treba da se baca
+	return iold;
 }
 
 template<typename FunTip>
@@ -443,7 +380,7 @@ double AdaptiveIntegration(FunTip f, double a, double b, double eps, int maxdept
 }
 
 template<typename FunTip>
-double AdaptiveAux(FunTip f, double a, double b, double eps, 
+double AdaptiveAux(FunTip f, double a, double b, double eps,
 	double f1, double f2, double f3, int r)
 {
 	double c = (a + b) / 2.0;
@@ -451,7 +388,7 @@ double AdaptiveAux(FunTip f, double a, double b, double eps,
 	double f4 = f((a + c) / 2.0);
 	double f5 = f((c + b) / 2.0);
 
-	double i2 = (b - a) * (f1 + 4 * f3 + f2) / 12;
+	double i2 = (b - a) * (f1 + 4 * f4 + 2 * f3 + 4 * f5 + f2) / 12;
 
 	if (r <= 0 || std::abs(i1 - i2) < eps)
 		return i2;

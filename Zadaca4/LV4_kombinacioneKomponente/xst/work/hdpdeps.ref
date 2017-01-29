@@ -1,0 +1,14 @@
+V3 7
+FL $XILINX/LV4_kombinacioneKomponente/mux2u12bit.vhd 2016/11/06.17:45:27 J.36
+EN work/mux2u12bit 1478451164 \
+      FL $XILINX/LV4_kombinacioneKomponente/mux2u12bit.vhd PB ieee/std_logic_1164 1177545575 \
+      PB ieee/std_logic_arith 1177545576 PB ieee/STD_LOGIC_UNSIGNED 1177545583
+AR work/mux2u12bit/Behavioral 1478451165 \
+      FL $XILINX/LV4_kombinacioneKomponente/mux2u12bit.vhd EN work/mux2u12bit 1478451164 \
+      CP mux2u1
+FL $XILINX/LV4_kombinacioneKomponente/rom.vhd 2016/11/06.18:29:56 J.36
+EN work/rom 1478453442 FL $XILINX/LV4_kombinacioneKomponente/rom.vhd \
+      PB ieee/std_logic_1164 1177545575 PB ieee/std_logic_arith 1177545576 \
+      PB ieee/STD_LOGIC_UNSIGNED 1177545583
+AR work/rom/Behavioral 1478453443 \
+      FL $XILINX/LV4_kombinacioneKomponente/rom.vhd EN work/rom 1478453442

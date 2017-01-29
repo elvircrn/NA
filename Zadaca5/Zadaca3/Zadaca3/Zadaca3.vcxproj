@@ -23,7 +23,6 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Zadaca3</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>Zadaca4</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -147,7 +146,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BarycentricInterpolator.cpp" />
-    <ClCompile Include="ChebyshevApproximation.cpp" />
     <ClCompile Include="GMath.cpp" />
     <ClCompile Include="LinearInterpolator.cpp" />
     <ClCompile Include="LUDecomposer.cpp" />
@@ -161,11 +159,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BarycentricInterpolator.h" />
-    <ClInclude Include="ChebyshevApproximation.h" />
     <ClInclude Include="GMath.h" />
     <ClInclude Include="LinearInterpolator.h" />
     <ClInclude Include="LUDecomposer.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="PolynomialInterpolator.h" />
     <ClInclude Include="QRDecomposer.h" />
