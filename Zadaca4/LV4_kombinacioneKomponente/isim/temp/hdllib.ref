@@ -1,8 +1,0 @@
-AR mux2u1 behavioral C:/Xilinx92i/LV4_kombinacioneKomponente/mux2u1.vhd sub00/vhpl01 1478450733
-EN rom NULL C:/Xilinx92i/LV4_kombinacioneKomponente/rom.vhd sub00/vhpl04 1478454451
-EN mux2u1 NULL C:/Xilinx92i/LV4_kombinacioneKomponente/mux2u1.vhd sub00/vhpl00 1478450732
-AR romtb_vhd behavior C:/Xilinx92i/LV4_kombinacioneKomponente/romtb.vhd sub00/vhpl07 1478454454
-EN mux2u12bit NULL C:/Xilinx92i/LV4_kombinacioneKomponente/mux2u12bit.vhd sub00/vhpl02 1478450734
-AR mux2u12bit behavioral C:/Xilinx92i/LV4_kombinacioneKomponente/mux2u12bit.vhd sub00/vhpl03 1478450735
-AR rom behavioral C:/Xilinx92i/LV4_kombinacioneKomponente/rom.vhd sub00/vhpl05 1478454452
-EN romtb_vhd NULL C:/Xilinx92i/LV4_kombinacioneKomponente/romtb.vhd sub00/vhpl06 1478454453
